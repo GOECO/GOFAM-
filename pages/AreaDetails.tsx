@@ -18,6 +18,17 @@ interface AlertItem {
 
 const ALERTS_DATA: AlertItem[] = [
   {
+    id: 'a0',
+    type: 'soil',
+    title: 'Độ ẩm đất quá thấp',
+    time: '5p trước',
+    shortDesc: 'Hiện tại: 30% (Ngưỡng: >50%)',
+    longDesc: 'Cảm biến tại Block 2 ghi nhận độ ẩm đất giảm đột ngột xuống mức nguy hiểm. Cần tưới bổ sung ngay lập tức để tránh ảnh hưởng đến cây trồng.',
+    status: 'critical',
+    currentValue: '30%',
+    targetValue: '50%'
+  },
+  {
     id: 'a1',
     type: 'soil',
     title: 'Độ ẩm đất thấp',
@@ -266,7 +277,7 @@ const AreaDetails: React.FC<Props> = ({ onBack, onNavigate }) => {
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Cảnh báo & Sự kiện</h3>
-                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-red-500/30">3</span>
+                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-red-500/30">4</span>
               </div>
               <button className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1.5 hover:underline underline-offset-4">
                 <span className="material-symbols-outlined text-sm font-bold">tune</span>

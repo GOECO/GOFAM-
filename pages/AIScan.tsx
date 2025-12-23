@@ -18,8 +18,9 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [selectedPlantType, setSelectedPlantType] = useState(PLANT_TYPES[0]);
   const [customPlantName, setCustomPlantName] = useState('');
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function setupCamera() {
@@ -51,25 +52,46 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
     });
   };
 
+  const captureFrame = async () => {
+    if (!videoRef.current) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(videoRef.current, 0, 0);
+
+    const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/jpeg', 0.8));
+    if (!blob) return;
+
+    const base64Data = await blobToBase64(blob);
+    setCapturedImages(prev => [...prev, base64Data]);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newImages: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const base64 = await blobToBase64(file);
+      newImages.push(base64);
+    }
+    setCapturedImages(prev => [...prev, ...newImages]);
+  };
+
+  const removeImage = (index: number) => {
+    setCapturedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleScan = async () => {
-    if (!videoRef.current || isScanning) return;
+    if (capturedImages.length === 0 || isScanning) return;
     setIsScanning(true);
 
     try {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      ctx.drawImage(videoRef.current, 0, 0);
-
-      const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/jpeg', 0.8));
-      if (!blob) throw new Error("Failed to capture frame");
-
-      const base64Data = await blobToBase64(blob);
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-      // Build the plant context based on selection or custom input
       let plantContext = selectedPlantType.name;
       if (selectedPlantType.id === 'other' && customPlantName.trim()) {
         plantContext = customPlantName.trim();
@@ -77,16 +99,22 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
         plantContext = "một loại cây nông nghiệp chưa xác định";
       }
 
+      // Create image parts for each captured image
+      const imageParts = capturedImages.map(img => ({
+        inlineData: { data: img, mimeType: 'image/jpeg' }
+      }));
+
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: {
           parts: [
-            { inlineData: { data: base64Data, mimeType: 'image/jpeg' } },
+            ...imageParts,
             { 
               text: `Bạn là một chuyên gia bệnh lý thực vật (Plant Pathologist). 
-              Hình ảnh này là của cây: ${plantContext}. 
+              Tôi cung cấp cho bạn ${capturedImages.length} hình ảnh về cùng một mẫu cây: ${plantContext}.
+              Hãy quan sát kỹ từng góc độ để đưa ra chẩn đoán chính xác nhất.
               Nhiệm vụ:
-              1. Phân tích các dấu hiệu bệnh lý, sâu hại hoặc thiếu hụt dinh dưỡng trên mẫu vật này.
+              1. Phân tích tổng hợp các dấu hiệu bệnh lý, sâu hại hoặc thiếu hụt dinh dưỡng từ tất cả các hình ảnh.
               2. Sử dụng kiến thức chuyên sâu về loài cây ${plantContext} để đối chiếu các triệu chứng đặc trưng.
               3. Cung cấp chẩn đoán chính xác nhất, bao gồm tên bệnh, tên khoa học và mức độ nghiêm trọng.
               4. Đưa ra phác đồ điều trị cụ thể cho loài cây này.
@@ -143,7 +171,7 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
           <span className="material-symbols-outlined">close</span>
         </button>
         <div className="px-4 py-1.5 bg-primary/20 border border-primary/40 rounded-full flex items-center gap-2 backdrop-blur-md">
-          <span className="text-[10px] font-black text-primary tracking-[0.2em] uppercase">Gofam Pro Vision</span>
+          <span className="text-[10px] font-black text-primary tracking-[0.2em] uppercase">Gofam Pro Multi-Vision</span>
           <div className="size-1.5 rounded-full bg-primary animate-pulse"></div>
         </div>
         <button className="size-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md">
@@ -170,17 +198,47 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
         {isScanning ? (
           <div className="mt-8 px-8 py-3 bg-primary text-black rounded-full font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-glow animate-bounce">
              <span className="material-symbols-outlined animate-spin !text-lg">sync</span>
-             Đang chẩn đoán {activePlantDisplayName}...
+             Phân tích {capturedImages.length} ảnh {activePlantDisplayName}...
           </div>
         ) : (
           <div className="mt-8 flex flex-col items-center gap-2">
-            <p className="text-white font-bold text-sm tracking-wide">Căn chỉnh lá vào khung quét</p>
-            <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">Đang sử dụng Gemini 2.5 Pro Vision</p>
+            <p className="text-white font-bold text-sm tracking-wide">
+              {capturedImages.length > 0 ? `Đã thêm ${capturedImages.length} ảnh` : 'Chụp các góc lá khác nhau để phân tích chính xác hơn'}
+            </p>
+            <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">Sử dụng đa góc nhìn - Gemini 2.5 Pro</p>
           </div>
         )}
       </div>
 
       <div className="relative z-10 p-6 bg-gradient-to-t from-black via-black/95 to-transparent">
+        {/* Captured Images Preview */}
+        {capturedImages.length > 0 && (
+          <div className="mb-4">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+              {capturedImages.map((img, idx) => (
+                <div key={idx} className="relative size-16 shrink-0 rounded-xl overflow-hidden border border-white/20 group">
+                  <img src={`data:image/jpeg;base64,${img}`} className="w-full h-full object-cover" alt={`Capture ${idx}`} />
+                  <button 
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-1 right-1 size-5 bg-red-500 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <span className="material-symbols-outlined !text-xs">close</span>
+                  </button>
+                </div>
+              ))}
+              {capturedImages.length > 0 && !isScanning && (
+                <button 
+                  onClick={handleScan}
+                  className="shrink-0 size-16 rounded-xl bg-primary flex flex-col items-center justify-center text-black font-black text-[10px] uppercase gap-1 shadow-glow"
+                >
+                  <span className="material-symbols-outlined !text-xl">analytics</span>
+                  Quét
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Plant Type Selection Chips */}
         <div className="mb-4">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 px-1">Loại cây trồng</p>
@@ -204,7 +262,7 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
           </div>
         </div>
 
-        {/* Custom Plant Name Input - Only visible when "Other" is selected */}
+        {/* Custom Plant Name Input */}
         {selectedPlantType.id === 'other' && (
           <div className="mb-6 animate-[slideDown_0.3s_ease-out]">
             <div className="relative">
@@ -221,12 +279,23 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
         )}
 
         <div className="flex items-center justify-between gap-8 pb-4">
-          <div className="size-14 rounded-2xl bg-white/5 overflow-hidden border border-white/10 group cursor-pointer active:scale-95 transition-all">
-            <img src="https://picsum.photos/200/200" className="w-full h-full object-cover opacity-60 group-hover:opacity-100" alt="Gallery" />
-          </div>
+          <input 
+            type="file" 
+            multiple 
+            accept="image/*" 
+            ref={fileInputRef} 
+            className="hidden" 
+            onChange={handleFileUpload} 
+          />
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="size-14 rounded-2xl bg-white/5 overflow-hidden border border-white/10 group cursor-pointer active:scale-95 transition-all flex items-center justify-center text-white/60"
+          >
+            <span className="material-symbols-outlined !text-2xl">upload_file</span>
+          </button>
 
           <button 
-            onClick={handleScan} 
+            onClick={captureFrame} 
             disabled={isScanning}
             className="size-24 rounded-full border-[8px] border-white/20 flex items-center justify-center p-1.5 transition-all active:scale-90"
           >
@@ -238,7 +307,6 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
           </button>
         </div>
       </div>
-      <canvas ref={canvasRef} className="hidden" />
 
       <style>{`
         @keyframes slideDown {

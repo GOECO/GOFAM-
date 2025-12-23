@@ -55,20 +55,29 @@ const Marketplace: React.FC<Props> = ({ onBack, onFindNearby }) => {
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: {
-          parts: [{ text: `A professional, high-quality photograph of a specialized pro-farming asset: ${aiPrompt}. The image should look like a product listing in a modern agricultural marketplace, sharp focus, neutral studio background.` }],
+          parts: [
+            { text: `Create a professional, studio-quality product photograph of a modern agricultural asset for a pro-grade marketplace: ${aiPrompt}. The image should feature clean lines, high-tech design, neutral background, and realistic textures suitable for a farming equipment catalog.` }
+          ]
         },
+        config: {
+          imageConfig: {
+            aspectRatio: "1:1"
+          }
+        }
       });
 
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const base64Data = part.inlineData.data;
-          setGeneratedImage(`data:image/png;base64,${base64Data}`);
-          break;
+      if (response.candidates && response.candidates[0].content.parts) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            const base64Data = part.inlineData.data;
+            setGeneratedImage(`data:image/png;base64,${base64Data}`);
+            break;
+          }
         }
       }
     } catch (err) {
-      console.error("Image generation failed:", err);
-      alert("AI Generation currently unavailable. Please try again.");
+      console.error("AI Asset Creation failed:", err);
+      alert("Hệ thống tạo ảnh AI đang bận hoặc gặp lỗi. Vui lòng thử lại sau.");
     } finally {
       setIsGenerating(false);
     }
@@ -119,7 +128,10 @@ const Marketplace: React.FC<Props> = ({ onBack, onFindNearby }) => {
               </div>
               <p className="text-gray-400 text-xs leading-relaxed mb-4">Bạn cần một thiết bị tùy chỉnh? Sử dụng AI để phác thảo hình ảnh vật tư lý tưởng của bạn.</p>
               <button 
-                onClick={() => setIsCreatorOpen(true)}
+                onClick={() => {
+                  setGeneratedImage(null);
+                  setIsCreatorOpen(true);
+                }}
                 className="bg-white dark:bg-primary text-black px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
               >
                 Trải nghiệm ngay
@@ -246,10 +258,16 @@ const Marketplace: React.FC<Props> = ({ onBack, onFindNearby }) => {
 
                 {generatedImage && (
                   <div className="rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-lg animate-[fadeIn_0.3s_ease-out]">
-                     <img src={generatedImage} alt="AI Created" className="w-full h-auto" />
+                     <img src={generatedImage} alt="AI Created" className="w-full h-auto aspect-square object-cover" />
                      <div className="p-3 bg-gray-50 dark:bg-black/20 flex justify-between items-center">
                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Phác thảo từ Gemini Vision</span>
-                        <button className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">Tải về máy</button>
+                        <div className="flex gap-4">
+                           <button className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">Tải về máy</button>
+                           <button onClick={() => {
+                             alert("Sản phẩm tùy chỉnh đã được gửi tới nhà sản xuất để nhận báo giá.");
+                             setIsCreatorOpen(false);
+                           }} className="text-blue-500 text-[10px] font-black uppercase tracking-widest hover:underline">Yêu cầu báo giá</button>
+                        </div>
                      </div>
                   </div>
                 )}

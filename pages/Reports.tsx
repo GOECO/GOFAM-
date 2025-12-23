@@ -3,6 +3,21 @@ import React, { useState } from 'react';
 
 interface Props { onBack: () => void; }
 
+interface CropYieldData {
+  crop: string;
+  planned: number; // in Tons
+  actual: number;  // in Tons
+  change: string;
+  color: string;
+}
+
+const CROP_PERFORMANCE: CropYieldData[] = [
+  { crop: 'Dâu Tây', planned: 4.5, actual: 4.2, change: '-6.6%', color: 'text-red-500' },
+  { crop: 'Xà Lách', planned: 3.2, actual: 3.8, change: '+18.7%', color: 'text-primary' },
+  { crop: 'Cà Chua', planned: 5.0, actual: 4.8, change: '-4.0%', color: 'text-orange-500' },
+  { crop: 'Ớt Chuông', planned: 2.5, actual: 2.7, change: '+8.0%', color: 'text-primary' },
+];
+
 const Reports: React.FC<Props> = ({ onBack }) => {
   const [timeView, setTimeView] = useState<'Tháng' | 'Vụ' | 'Năm'>('Tháng');
 
@@ -108,54 +123,73 @@ const Reports: React.FC<Props> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* Bar Analysis Chart */}
+        {/* Grouped Bar Chart: Crop Yields Comparison */}
         <div className="px-4 py-2">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-sm font-black flex items-center gap-2 uppercase tracking-widest">
               <span className="material-symbols-outlined text-primary !text-xl">bar_chart</span>
-              Biểu đồ Phân tích
+              Sản lượng theo Cây trồng (3 Tháng qua)
             </h2>
-            <button className="size-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 hover:text-primary transition-colors">
-              <span className="material-symbols-outlined !text-lg">download</span>
-            </button>
-          </div>
-          <div className="bg-white dark:bg-surface-dark p-6 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
-            <div className="flex border-b border-gray-100 dark:border-white/5 mb-6 gap-6">
-              <button className="text-[10px] font-black text-primary-dark dark:text-primary border-b-2 border-primary pb-3 -mb-[1px] uppercase tracking-widest">Sản lượng (Tấn)</button>
-              <button className="text-[10px] font-black text-gray-400 hover:text-gray-600 pb-3 uppercase tracking-widest">Tài chính (VND)</button>
+            <div className="flex items-center gap-2">
+               <span className="text-[9px] font-black text-gray-400 uppercase">Q3/2024</span>
+               <button className="size-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 hover:text-primary transition-colors">
+                 <span className="material-symbols-outlined !text-lg">download</span>
+               </button>
             </div>
-            <div className="flex items-end justify-between h-48 w-full gap-3 mt-2 pt-4 relative">
-              <div className="absolute inset-0 flex flex-col justify-between text-[8px] text-gray-200 dark:text-gray-800 pointer-events-none pb-8">
+          </div>
+          
+          <div className="bg-white dark:bg-surface-dark p-6 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5">
+            <div className="flex items-end justify-between h-56 w-full gap-2 relative pt-8">
+              {/* Y-Axis Grid Lines */}
+              <div className="absolute inset-0 flex flex-col justify-between text-[8px] text-gray-200 dark:text-gray-800 pointer-events-none pb-10">
                 <div className="border-b border-dashed border-current w-full h-0"></div>
                 <div className="border-b border-dashed border-current w-full h-0"></div>
                 <div className="border-b border-dashed border-current w-full h-0"></div>
                 <div className="border-b border-dashed border-current w-full h-0"></div>
               </div>
               
-              {[
-                { label: 'T1', plan: 'h-16', actual: 'h-20' },
-                { label: 'T2', plan: 'h-24', actual: 'h-28' },
-                { label: 'T3', plan: 'h-32', actual: 'h-40', highlight: true },
-                { label: 'T4', plan: 'h-28', actual: 'h-36' },
-                { label: 'T5', plan: 'h-20', actual: 'h-24' },
-                { label: 'T6', plan: 'h-24', actual: 'h-32' },
-              ].map((bar, i) => (
-                <div key={i} className="flex flex-col items-center gap-3 w-full z-10">
-                  <div className="flex gap-1.5 items-end h-full">
-                    <div className={`w-2 bg-gray-200 dark:bg-gray-800 rounded-t-sm ${bar.plan}`}></div> 
-                    <div className={`w-2 bg-primary rounded-t-sm ${bar.actual} ${bar.highlight ? 'shadow-[0_0_12px_rgba(19,236,73,0.5)]' : 'opacity-80'}`}></div> 
+              {CROP_PERFORMANCE.map((data, i) => {
+                // Scaling heights based on a max of 6 tons for visual consistency
+                const planHeight = (data.planned / 6) * 100;
+                const actualHeight = (data.actual / 6) * 100;
+                
+                return (
+                  <div key={i} className="flex flex-col items-center flex-1 z-10 relative">
+                    {/* Performance Label */}
+                    <span className={`absolute -top-4 text-[9px] font-black ${data.color} tracking-tighter whitespace-nowrap`}>
+                      {data.change}
+                    </span>
+                    
+                    <div className="flex items-end gap-1.5 h-full">
+                      {/* Planned Bar */}
+                      <div 
+                        className="w-3 bg-gray-100 dark:bg-gray-800 rounded-t-sm transition-all duration-1000 group-hover:bg-gray-200"
+                        style={{ height: `${planHeight}%` }}
+                      ></div>
+                      {/* Actual Bar */}
+                      <div 
+                        className={`w-3 bg-primary rounded-t-sm transition-all duration-1000 ${data.actual >= data.planned ? 'shadow-[0_0_12px_rgba(19,236,73,0.4)]' : 'opacity-70'}`}
+                        style={{ height: `${actualHeight}%` }}
+                      ></div>
+                    </div>
+                    
+                    {/* Crop Label */}
+                    <span className="text-[10px] font-black tracking-tight text-gray-400 uppercase mt-4 text-center leading-tight h-8">
+                      {data.crop}
+                    </span>
                   </div>
-                  <span className={`text-[10px] font-black tracking-widest ${bar.highlight ? 'text-text-main-light dark:text-white underline decoration-primary underline-offset-4' : 'text-gray-400'}`}>{bar.label}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
-            <div className="flex justify-center gap-6 mt-6">
+
+            {/* Legend */}
+            <div className="flex justify-center gap-8 mt-4 pt-4 border-t border-gray-50 dark:border-white/5">
               <div className="flex items-center gap-2">
-                <div className="size-2 rounded-full bg-primary"></div>
-                <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Thực tế</span>
+                <div className="size-2.5 rounded-full bg-primary shadow-sm"></div>
+                <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Thực tế (Tấn)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="size-2 rounded-full bg-gray-200 dark:bg-gray-800"></div>
+                <div className="size-2.5 rounded-full bg-gray-200 dark:bg-gray-800"></div>
                 <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Kế hoạch</span>
               </div>
             </div>
@@ -300,7 +334,7 @@ const Reports: React.FC<Props> = ({ onBack }) => {
       </div>
 
       {/* Navigation Footer */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto h-20 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 flex items-center justify-around px-4 z-40 transition-colors">
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto h-20 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 flex items-center justify-around px-4 z-40 transition-colors">
         <button onClick={onBack} className="flex flex-col items-center justify-center w-full gap-1.5 text-gray-400 hover:text-primary transition-all group">
           <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">home</span>
           <span className="text-[9px] font-black uppercase tracking-[0.15em]">Tổng quan</span>
