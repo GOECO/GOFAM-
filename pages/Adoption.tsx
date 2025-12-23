@@ -26,6 +26,7 @@ interface InvestmentItem {
   img: string;
   roi: string;
   baseRoiNum: number;
+  actualRoiNum: number;
   risk: string;
   riskLevel: 'Low' | 'Medium' | 'High';
   duration: '45 Ngày' | '4 Tháng' | '90 Ngày' | '60 Ngày';
@@ -51,6 +52,7 @@ const OPPORTUNITIES: InvestmentItem[] = [
     img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAF_mQFClHp4pdW3qAVst-OXjqH9mGNgz4PSGd2NSHg_g4es_kDmN-l-Ay8SRa7iCq2vSYwMlcchFhLMcC55RG0n8XTfTCRYd3sO4RW5jtgAGhOct8IEwqQLV9ZLfmMeWdAywTCtGAxqDZ3N_wIjS3b__uZJg8N0Wj4uDKY_leaE5XY-AnMtAqeoMkTEf04GJYOv5wapjk1ZtCVe4v5cwlno9bM7GGm_OX9hH27Bw98FP1vvjQkY_K8ovxxo9o30vGdkls7eFWW8kqk',
     roi: '12%',
     baseRoiNum: 12,
+    actualRoiNum: 11.8,
     risk: 'Thấp',
     riskLevel: 'Low',
     duration: '45 Ngày',
@@ -79,6 +81,7 @@ const OPPORTUNITIES: InvestmentItem[] = [
     img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCVptTZdxH44ojjmJluJhbJeQHjHH1ow-0LWz16U7v6RBSCgW_UcBnuubNvFRO3BlxvuRZWY915GiaPiw2LvwO1WffUKhdFx9eUlHl8rf5V-6SzblTrrm-ur5Z86uNX-7KzD3cV1pn8FQ5JIYkh4f7lckDOgJtOK6WMhWTA8pbekvofW0tvRunXv-8qXblPdfc-KfNxMoge0Expwm6dGglvczP767DtwgJ9vdmc1R4gsrDq4dJLHJRBw9UxGZYeruCaCs9k8V5x_',
     roi: '18%',
     baseRoiNum: 18,
+    actualRoiNum: 19.5,
     risk: 'TB',
     riskLevel: 'Medium',
     duration: '4 Tháng',
@@ -124,9 +127,9 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
     
     const impacts: Record<Scenario, CustomImpact> = {
       none: { weather: 0, disease: 0, market: 0 },
-      drought: { weather: -0.4, disease: 0, market: 0 },
-      pest: { weather: 0, disease: -0.25, market: 0 },
-      market: { weather: 0, disease: 0, market: -0.55 },
+      drought: { weather: -0.4, disease: -0.1, market: 0 },
+      pest: { weather: 0, disease: -0.25, market: -0.1 },
+      market: { weather: 0, disease: 0, market: -0.45 },
       custom: { weather: 0, disease: 0, market: 0 }
     };
     setCustomImpacts(prev => ({ ...prev, [itemId]: impacts[scenario] }));
@@ -149,25 +152,6 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
     const totalMultiplier = 1 + impacts.weather + impacts.disease + impacts.market;
     return (item.baseRoiNum * totalMultiplier).toFixed(1);
   };
-
-  const getScenarioLabel = (itemId: string) => {
-    const scenario = simulationState[itemId] || 'none';
-    const mode = simulatorMode[itemId] || 'quick';
-    if (mode === 'pro') return 'Tùy chỉnh Pro';
-    switch (scenario) {
-      case 'drought': return 'Hạn hán';
-      case 'pest': return 'Sâu bệnh';
-      case 'market': return 'Giá giảm';
-      default: return 'Bình thường';
-    }
-  };
-
-  const roiChartData = [
-    { label: 'Cà Chua', planned: 15, actual: 14.2 },
-    { label: 'Dưa Lưới', planned: 22, actual: 18.5 },
-    { label: 'Xà Lách', planned: 12, actual: 12.8 },
-    { label: 'Gà Sạch', planned: 18, actual: 19.1 },
-  ];
 
   return (
     <div className="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-gray-100 transition-colors duration-200">
@@ -210,43 +194,64 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
           </div>
         </div>
 
-        {/* ROI Analysis Chart */}
-        <section className="px-4 pt-6">
+        {/* Dynamic ROI Comparison Chart */}
+        <section className="px-4 py-6">
           <div className="bg-white dark:bg-surface-dark rounded-[2.5rem] p-6 shadow-soft border border-gray-100 dark:border-gray-800">
             <div className="flex items-center justify-between mb-6">
-              <div className="flex flex-col">
-                <h2 className="text-sm font-black text-text-main-light dark:text-white uppercase tracking-tight">Phân tích ROI Dự kiến</h2>
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Hiệu quả đầu tư tổng quát</p>
+              <div>
+                <h3 className="text-sm font-black text-text-main-light dark:text-white uppercase tracking-tight">So Sánh ROI Thực Tế</h3>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Kế Hoạch (Tối Ưu) vs Thực Tế (Vụ Trước)</p>
               </div>
-              <div className="flex flex-col items-end gap-1.5">
-                <div className="flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-primary shadow-glow"></div>
-                  <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Trung bình</span>
-                </div>
+              <div className="flex items-center justify-center size-10 rounded-2xl bg-primary/10 text-primary">
+                <span className="material-symbols-outlined">bar_chart</span>
               </div>
             </div>
 
-            <div className="flex items-end justify-between h-40 gap-4 mt-2 relative">
-              {roiChartData.map((data, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-3 h-full justify-end relative z-10 group">
-                  <div className="flex gap-1 items-end h-full w-full justify-center">
-                    <div 
-                      className="w-4 bg-primary rounded-t-lg transition-all duration-1000 shadow-glow"
-                      style={{ height: `${(data.actual / 25) * 100}%` }}
-                    ></div>
+            <div className="space-y-6">
+              {OPPORTUNITIES.map((item) => (
+                <div key={item.id} className="space-y-2">
+                  <div className="flex justify-between items-end mb-1">
+                    <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase truncate max-w-[150px]">{item.name}</span>
+                    <div className="flex gap-3">
+                       <span className="text-[9px] font-bold text-gray-400 uppercase">Kế hoạch: <span className="text-gray-900 dark:text-white">{item.baseRoiNum}%</span></span>
+                       <span className="text-[9px] font-bold text-gray-400 uppercase">Thực tế: <span className="text-primary">{item.actualRoiNum}%</span></span>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-[9px] font-black text-text-main-light dark:text-white">{data.actual}%</span>
-                    <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter truncate w-full text-center">{data.label}</span>
+                  <div className="flex flex-col gap-1.5">
+                    {/* Planned Bar */}
+                    <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden relative">
+                      <div 
+                        className="h-full bg-gray-400/30 transition-all duration-1000" 
+                        style={{ width: `${(item.baseRoiNum / 25) * 100}%` }}
+                      ></div>
+                    </div>
+                    {/* Actual Bar */}
+                    <div className="h-2.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden relative">
+                      <div 
+                        className="h-full bg-primary shadow-glow transition-all duration-1000" 
+                        style={{ width: `${(item.actualRoiNum / 25) * 100}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-6 flex justify-center gap-6 pt-4 border-t border-gray-50 dark:border-gray-800/50">
+              <div className="flex items-center gap-2">
+                <div className="size-2 rounded-full bg-gray-400/30"></div>
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Kế Hoạch</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="size-2 rounded-full bg-primary shadow-glow"></div>
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Thực Tế</span>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Investment List */}
-        <section className="px-4 py-8">
+        <section className="px-4 py-4">
           <div className="flex justify-between items-end mb-6 px-1">
             <h2 className="text-text-main-light dark:text-white text-xl font-black tracking-tight uppercase">Danh sách khả dụng</h2>
           </div>
