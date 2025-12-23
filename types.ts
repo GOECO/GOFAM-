@@ -23,6 +23,8 @@ export interface DiagnosisResult {
 
 export type Priority = 'Low' | 'Medium' | 'High';
 
+export type TaskStatus = 'Pending' | 'In Progress' | 'Completed';
+
 export interface Task {
   id: string;
   title: string;
@@ -31,6 +33,6 @@ export interface Task {
   time: string;
   area: string;
   priority: Priority;
-  completed: boolean;
+  status: TaskStatus;
   type: 'irrigation' | 'inspection' | 'harvest' | 'other';
 }

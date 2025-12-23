@@ -4,11 +4,15 @@ import React, { useState } from 'react';
 interface Props { onBack: () => void; }
 
 type TaskType = 'irrigation' | 'fertilizer' | 'pest' | 'harvest';
+type Frequency = 'daily' | 'weekly' | 'monthly';
+type SensorTrigger = 'moisture' | 'temperature' | 'lux';
 
 const AddTask: React.FC<Props> = ({ onBack }) => {
   const [taskType, setTaskType] = useState<TaskType>('irrigation');
   const [recurring, setRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<Frequency>('daily');
   const [iotEnabled, setIotEnabled] = useState(true);
+  const [sensorType, setSensorType] = useState<SensorTrigger>('moisture');
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-display antialiased text-text-main-light dark:text-white pb-32">
@@ -86,110 +90,101 @@ const AddTask: React.FC<Props> = ({ onBack }) => {
                 </div>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Người phụ trách</label>
-              <div className="relative group">
-                <select className="w-full h-12 pl-11 pr-10 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-black/20 text-text-main-light dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none appearance-none text-sm font-bold transition-all">
-                  <option value="me">Tôi (Nguyễn Văn A)</option>
-                  <option value="staff1">Trần Thị B - Kỹ thuật viên</option>
-                  <option value="staff2">Lê Văn C - Công nhân</option>
-                </select>
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 text-[18px]">person</span>
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 text-[18px]">expand_more</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Inventory & Cost */}
-        <div className="bg-white dark:bg-surface-dark rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-50 dark:border-gray-800/50 bg-gray-50/30 dark:bg-black/10">
-            <h3 className="text-xs font-black text-text-main-light dark:text-gray-200 uppercase tracking-widest">Vật tư & Chi phí</h3>
-          </div>
-          <div className="p-5 space-y-5">
-            <div className="space-y-3">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Vật tư cần dùng</label>
-              <div className="flex items-center justify-between p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-black/20 group hover:border-primary/40 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="size-10 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center">
-                    <span className="material-symbols-outlined !text-xl">science</span>
-                  </div>
-                  <div>
-                    <div className="text-sm font-black dark:text-white leading-none">Phân NPK 20-20-15</div>
-                    <div className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">Kho A • 10 kg</div>
-                  </div>
-                </div>
-                <button className="text-gray-300 hover:text-red-500 transition-colors">
-                  <span className="material-symbols-outlined !text-xl">close</span>
-                </button>
-              </div>
-              <button className="w-full py-3.5 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-all flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined !text-lg font-bold">add</span>
-                Thêm vật tư
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Chi phí dự kiến</label>
-              <div className="relative">
-                <input className="w-full h-12 pl-11 pr-16 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-black/20 text-text-main-light dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none text-sm font-black appearance-none text-right" type="text" defaultValue="350,000"/>
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 text-[18px]">attach_money</span>
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-black text-[10px] uppercase tracking-widest">VNĐ</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Advanced Options */}
+        {/* Enhanced Advanced Options */}
         <div className="bg-white dark:bg-surface-dark rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50 dark:border-gray-800/50 bg-gray-50/30 dark:bg-black/10 flex justify-between items-center">
-            <h3 className="text-xs font-black text-text-main-light dark:text-gray-200 uppercase tracking-widest">Tùy chọn nâng cao</h3>
+            <h3 className="text-xs font-black text-text-main-light dark:text-gray-200 uppercase tracking-widest">Tùy chọn Pro</h3>
             <span className="material-symbols-outlined text-gray-300">tune</span>
           </div>
           <div className="p-5 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-black dark:text-white">Lặp lại định kỳ</div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Tự động tạo nhiệm vụ mới</div>
+            {/* Recurring Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className={`material-symbols-outlined ${recurring ? 'text-primary' : 'text-gray-300'} !text-xl`}>event_repeat</span>
+                  <div>
+                    <div className="text-sm font-black dark:text-white">Lặp lại định kỳ</div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Tự động tạo nhiệm vụ mới</div>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" checked={recurring} onChange={() => setRecurring(!recurring)} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none dark:bg-gray-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary transition-all"></div>
+                </label>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" checked={recurring} onChange={() => setRecurring(!recurring)} className="sr-only peer" />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none dark:bg-gray-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-              </label>
+
+              {recurring && (
+                <div className="flex p-1 bg-gray-100 dark:bg-black/20 rounded-xl gap-1 animate-[fadeIn_0.3s_ease-out]">
+                  {[
+                    { id: 'daily', label: 'Hàng ngày' },
+                    { id: 'weekly', label: 'Hàng tuần' },
+                    { id: 'monthly', label: 'Hàng tháng' }
+                  ].map((freq) => (
+                    <button 
+                      key={freq.id}
+                      onClick={() => setFrequency(freq.id as Frequency)}
+                      className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${frequency === freq.id ? 'bg-white dark:bg-surface-dark shadow-sm text-primary-dark dark:text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                      {freq.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="pt-4 border-t border-dashed border-gray-100 dark:border-gray-800">
-              <div className="flex items-center justify-between mb-4">
+            {/* IoT Integration Section */}
+            <div className="pt-4 border-t border-dashed border-gray-100 dark:border-gray-800 space-y-4">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className={`material-symbols-outlined ${iotEnabled ? 'text-primary' : 'text-gray-300'} !text-xl`}>sensors</span>
                   <div>
-                    <div className="text-sm font-black dark:text-white">Tự động kích hoạt (IoT)</div>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Dựa trên cảm biến</div>
+                    <div className="text-sm font-black dark:text-white">Kích hoạt thông minh (IoT)</div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Dựa trên dữ liệu cảm biến thực</div>
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" checked={iotEnabled} onChange={() => setIotEnabled(!iotEnabled)} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none dark:bg-gray-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none dark:bg-gray-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary transition-all"></div>
                 </label>
               </div>
 
               {iotEnabled && (
-                <div className="bg-gray-50 dark:bg-black/30 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 animate-[fadeIn_0.3s_ease-out]">
-                  <div className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Điều kiện kích hoạt</div>
-                  <div className="space-y-3">
-                    <select className="w-full h-10 px-4 rounded-xl text-xs font-bold bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 focus:ring-1 focus:ring-primary/20 outline-none">
-                      <option>Cảm biến độ ẩm đất (Khu A)</option>
-                      <option>Nhiệt độ không khí</option>
-                    </select>
-                    <div className="flex gap-3">
-                      <select className="w-1/2 h-10 px-4 rounded-xl text-xs font-bold bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 focus:ring-1 focus:ring-primary/20 outline-none">
+                <div className="bg-gray-50 dark:bg-black/30 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 animate-[fadeIn_0.3s_ease-out] space-y-4">
+                  <div>
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 block">Loại cảm biến theo dõi</label>
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                      {[
+                        { id: 'moisture', label: 'Độ ẩm đất', icon: 'water_drop' },
+                        { id: 'temperature', label: 'Nhiệt độ', icon: 'thermostat' },
+                        { id: 'lux', label: 'Ánh sáng', icon: 'light_mode' }
+                      ].map((s) => (
+                        <button 
+                          key={s.id}
+                          onClick={() => setSensorType(s.id as SensorTrigger)}
+                          className={`shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${sensorType === s.id ? 'bg-primary/10 border-primary text-primary-dark dark:text-primary' : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800 text-gray-500'}`}
+                        >
+                          <span className="material-symbols-outlined !text-base">{s.icon}</span>
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest pl-1">Điều kiện</label>
+                      <select className="w-full h-10 px-3 rounded-xl text-xs font-bold bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 focus:ring-1 focus:ring-primary/20 outline-none">
                         <option value="lt">Nhỏ hơn (&lt;)</option>
                         <option value="gt">Lớn hơn (&gt;)</option>
                       </select>
-                      <div className="relative w-1/2">
-                        <input className="w-full h-10 pl-4 pr-10 rounded-xl text-xs font-black bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 focus:ring-1 focus:ring-primary/20 outline-none" type="number" defaultValue="45"/>
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">%</span>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest pl-1">Ngưỡng ({sensorType === 'moisture' ? '%' : sensorType === 'temperature' ? '°C' : 'Lux'})</label>
+                      <div className="relative">
+                        <input className="w-full h-10 pl-4 pr-4 rounded-xl text-xs font-black bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 focus:ring-1 focus:ring-primary/20 outline-none" type="number" defaultValue={sensorType === 'moisture' ? '45' : sensorType === 'temperature' ? '32' : '15000'}/>
                       </div>
                     </div>
                   </div>
@@ -201,14 +196,19 @@ const AddTask: React.FC<Props> = ({ onBack }) => {
 
         {/* Additional Notes */}
         <div className="space-y-3 pb-12">
-          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Ghi chú thêm</label>
-          <textarea className="w-full min-h-[120px] p-4 rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-surface-dark text-text-main-light dark:text-white focus:ring-2 focus:ring-primary/10 outline-none text-sm font-medium leading-relaxed placeholder:text-gray-300" placeholder="Mô tả chi tiết công việc, lưu ý đặc biệt cho người thực hiện..."></textarea>
-          <div className="flex flex-wrap gap-2 pt-1">
-            {['#KhanCap', '#CanGiamSat', '#XuatKhau'].map(tag => (
-              <button key={tag} className="px-3.5 py-1.5 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 text-gray-400 text-[10px] font-black uppercase tracking-widest rounded-lg hover:border-primary/40 hover:text-primary transition-all">
-                {tag}
-              </button>
-            ))}
+          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Ghi chú & Ảnh chụp (AI)</label>
+          <textarea className="w-full min-h-[100px] p-4 rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-surface-dark text-text-main-light dark:text-white focus:ring-2 focus:ring-primary/10 outline-none text-sm font-medium leading-relaxed placeholder:text-gray-300" placeholder="Thêm ghi chú cụ thể hoặc hướng dẫn cho người thực hiện..."></textarea>
+          <div className="flex gap-2">
+            <button className="size-12 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center text-gray-400 hover:border-primary transition-all">
+              <span className="material-symbols-outlined">add_a_photo</span>
+            </button>
+            <div className="flex flex-wrap gap-2 pt-1 flex-1">
+              {['#KhanCap', '#UuTienPro'].map(tag => (
+                <button key={tag} className="px-3 py-1 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 text-gray-400 text-[10px] font-black uppercase tracking-widest rounded-lg">
+                  {tag}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -218,7 +218,7 @@ const AddTask: React.FC<Props> = ({ onBack }) => {
         <div className="max-w-md mx-auto">
           <button 
             onClick={() => {
-              alert("Nhiệm vụ đã được lưu và phân công!");
+              alert("Nhiệm vụ thông minh đã được lên lịch!");
               onBack();
             }}
             className="w-full bg-primary hover:bg-primary-dark text-black font-black text-sm uppercase tracking-widest h-14 rounded-2xl shadow-xl shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
@@ -231,6 +231,8 @@ const AddTask: React.FC<Props> = ({ onBack }) => {
 
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );

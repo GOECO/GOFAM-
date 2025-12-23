@@ -11,12 +11,21 @@ interface Phase {
   status: 'completed' | 'current' | 'upcoming';
 }
 
+type Scenario = 'none' | 'drought' | 'pest' | 'market' | 'custom';
+
+interface CustomImpact {
+  weather: number; // percentage change -0.5 to 0.1
+  disease: number; // percentage change -0.5 to 0
+  market: number;  // percentage change -0.5 to 0.2
+}
+
 interface InvestmentItem {
   id: string;
   type: 'crop' | 'pets';
   name: string;
   img: string;
   roi: string;
+  baseRoiNum: number;
   risk: string;
   riskLevel: 'Low' | 'Medium' | 'High';
   duration: '45 Ngày' | '4 Tháng' | '90 Ngày' | '60 Ngày';
@@ -41,6 +50,7 @@ const OPPORTUNITIES: InvestmentItem[] = [
     name: 'Rau Xà Lách Thủy Canh',
     img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAF_mQFClHp4pdW3qAVst-OXjqH9mGNgz4PSGd2NSHg_g4es_kDmN-l-Ay8SRa7iCq2vSYwMlcchFhLMcC55RG0n8XTfTCRYd3sO4RW5jtgAGhOct8IEwqQLV9ZLfmMeWdAywTCtGAxqDZ3N_wIjS3b__uZJg8N0Wj4uDKY_leaE5XY-AnMtAqeoMkTEf04GJYOv5wapjk1ZtCVe4v5cwlno9bM7GGm_OX9hH27Bw98FP1vvjQkY_K8ovxxo9o30vGdkls7eFWW8kqk',
     roi: '12%',
+    baseRoiNum: 12,
     risk: 'Thấp',
     riskLevel: 'Low',
     duration: '45 Ngày',
@@ -68,6 +78,7 @@ const OPPORTUNITIES: InvestmentItem[] = [
     name: 'Gà Thả Vườn Organic',
     img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCVptTZdxH44ojjmJluJhbJeQHjHH1ow-0LWz16U7v6RBSCgW_UcBnuubNvFRO3BlxvuRZWY915GiaPiw2LvwO1WffUKhdFx9eUlHl8rf5V-6SzblTrrm-ur5Z86uNX-7KzD3cV1pn8FQ5JIYkh4f7lckDOgJtOK6WMhWTA8pbekvofW0tvRunXv-8qXblPdfc-KfNxMoge0Expwm6dGglvczP767DtwgJ9vdmc1R4gsrDq4dJLHJRBw9UxGZYeruCaCs9k8V5x_',
     roi: '18%',
+    baseRoiNum: 18,
     risk: 'TB',
     riskLevel: 'Medium',
     duration: '4 Tháng',
@@ -94,6 +105,62 @@ const OPPORTUNITIES: InvestmentItem[] = [
 const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
   const [activeTab, setActiveTab] = useState('crop');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [simulationState, setSimulationState] = useState<Record<string, Scenario>>({});
+  const [customImpacts, setCustomImpacts] = useState<Record<string, CustomImpact>>({});
+  const [simulatorMode, setSimulatorMode] = useState<Record<string, 'quick' | 'pro'>>({});
+  const [isSimOpen, setIsSimOpen] = useState<Record<string, boolean>>({});
+
+  const toggleExpand = (id: string) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
+
+  const toggleSim = (id: string) => {
+    setIsSimOpen(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleQuickSimulate = (itemId: string, scenario: Scenario) => {
+    setSimulationState(prev => ({ ...prev, [itemId]: scenario }));
+    setSimulatorMode(prev => ({ ...prev, [itemId]: 'quick' }));
+    
+    const impacts: Record<Scenario, CustomImpact> = {
+      none: { weather: 0, disease: 0, market: 0 },
+      drought: { weather: -0.4, disease: 0, market: 0 },
+      pest: { weather: 0, disease: -0.25, market: 0 },
+      market: { weather: 0, disease: 0, market: -0.55 },
+      custom: { weather: 0, disease: 0, market: 0 }
+    };
+    setCustomImpacts(prev => ({ ...prev, [itemId]: impacts[scenario] }));
+  };
+
+  const updateCustomImpact = (itemId: string, key: keyof CustomImpact, value: number) => {
+    setSimulatorMode(prev => ({ ...prev, [itemId]: 'pro' }));
+    setSimulationState(prev => ({ ...prev, [itemId]: 'custom' }));
+    setCustomImpacts(prev => ({
+      ...prev,
+      [itemId]: {
+        ...(prev[itemId] || { weather: 0, disease: 0, market: 0 }),
+        [key]: value
+      }
+    }));
+  };
+
+  const getFinalRoi = (item: InvestmentItem) => {
+    const impacts = customImpacts[item.id] || { weather: 0, disease: 0, market: 0 };
+    const totalMultiplier = 1 + impacts.weather + impacts.disease + impacts.market;
+    return (item.baseRoiNum * totalMultiplier).toFixed(1);
+  };
+
+  const getScenarioLabel = (itemId: string) => {
+    const scenario = simulationState[itemId] || 'none';
+    const mode = simulatorMode[itemId] || 'quick';
+    if (mode === 'pro') return 'Tùy chỉnh Pro';
+    switch (scenario) {
+      case 'drought': return 'Hạn hán';
+      case 'pest': return 'Sâu bệnh';
+      case 'market': return 'Giá giảm';
+      default: return 'Bình thường';
+    }
+  };
 
   const roiChartData = [
     { label: 'Cà Chua', planned: 15, actual: 14.2 },
@@ -101,10 +168,6 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
     { label: 'Xà Lách', planned: 12, actual: 12.8 },
     { label: 'Gà Sạch', planned: 18, actual: 19.1 },
   ];
-
-  const toggleExpand = (id: string) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
 
   return (
     <div className="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-gray-100 transition-colors duration-200">
@@ -123,8 +186,8 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
       </header>
 
       <main className="flex-1 overflow-y-auto pb-32 no-scrollbar">
-        {/* Sub-header Filter Tabs */}
-        <div className="bg-white dark:bg-surface-dark pb-3 sticky top-[62px] z-40 shadow-sm transition-colors px-4 pt-3 border-b border-gray-50 dark:border-gray-800/50">
+        {/* Tabs */}
+        <div className="bg-white dark:bg-surface-dark pb-3 sticky top-[62px] z-40 shadow-sm px-4 pt-3 border-b border-gray-50 dark:border-gray-800/50">
           <div className="flex p-1 bg-gray-100 dark:bg-gray-800/60 rounded-[1.25rem] gap-1">
             <button 
               onClick={() => setActiveTab('crop')}
@@ -147,40 +210,28 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
           </div>
         </div>
 
-        {/* ROI Analysis Bar Chart Section */}
+        {/* ROI Analysis Chart */}
         <section className="px-4 pt-6">
           <div className="bg-white dark:bg-surface-dark rounded-[2.5rem] p-6 shadow-soft border border-gray-100 dark:border-gray-800">
             <div className="flex items-center justify-between mb-6">
               <div className="flex flex-col">
                 <h2 className="text-sm font-black text-text-main-light dark:text-white uppercase tracking-tight">Phân tích ROI Dự kiến</h2>
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">So sánh Kế hoạch vs Thực tế</p>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Hiệu quả đầu tư tổng quát</p>
               </div>
               <div className="flex flex-col items-end gap-1.5">
                 <div className="flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                  <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Kế hoạch</span>
-                </div>
-                <div className="flex items-center gap-2">
                   <div className="size-2 rounded-full bg-primary shadow-glow"></div>
-                  <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Dự phóng</span>
+                  <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Trung bình</span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-end justify-between h-40 gap-4 mt-2 relative">
-              <div className="absolute inset-0 flex flex-col justify-between py-1 pointer-events-none opacity-5 dark:opacity-10">
-                {[0, 1, 2, 3].map(i => <div key={i} className="w-full border-b border-text-main-light dark:border-white border-dashed"></div>)}
-              </div>
-
               {roiChartData.map((data, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-3 h-full justify-end relative z-10 group">
                   <div className="flex gap-1 items-end h-full w-full justify-center">
                     <div 
-                      className="w-2.5 bg-gray-100 dark:bg-gray-800 rounded-t-lg transition-all duration-1000 group-hover:bg-gray-200 dark:group-hover:bg-gray-700"
-                      style={{ height: `${(data.planned / 25) * 100}%` }}
-                    ></div>
-                    <div 
-                      className="w-2.5 bg-primary rounded-t-lg transition-all duration-1000 shadow-glow group-hover:scale-y-105 origin-bottom"
+                      className="w-4 bg-primary rounded-t-lg transition-all duration-1000 shadow-glow"
                       style={{ height: `${(data.actual / 25) * 100}%` }}
                     ></div>
                   </div>
@@ -194,24 +245,37 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
           </div>
         </section>
 
-        {/* Vertical List Section */}
+        {/* Investment List */}
         <section className="px-4 py-8">
           <div className="flex justify-between items-end mb-6 px-1">
             <h2 className="text-text-main-light dark:text-white text-xl font-black tracking-tight uppercase">Danh sách khả dụng</h2>
-            <div className="flex items-center gap-1.5 text-[10px] text-primary font-black uppercase tracking-widest cursor-pointer hover:underline">
-              <span>ROI cao nhất</span>
-              <span className="material-symbols-outlined !text-base">sort</span>
-            </div>
           </div>
 
           <div className="flex flex-col gap-6">
             {OPPORTUNITIES.map((item) => {
               const isExpanded = expandedId === item.id;
+              const isSimulating = (simulationState[item.id] || 'none') !== 'none';
+              const scenario = simulationState[item.id] || 'none';
+              const mode = simulatorMode[item.id] || 'quick';
+              const impacts = customImpacts[item.id] || { weather: 0, disease: 0, market: 0 };
+              const simulatedRoi = getFinalRoi(item);
+              const isOpen = isSimOpen[item.id] || false;
+
+              // Intensity based styling for stress test
+              const isCritical = Number(simulatedRoi) < item.baseRoiNum * 0.7 && isSimulating;
               
               return (
                 <div 
                   key={item.id}
-                  className={`bg-white dark:bg-surface-dark rounded-[2rem] p-5 shadow-sm border transition-all duration-300 overflow-hidden ${isExpanded ? 'border-primary/50 ring-2 ring-primary/5' : 'border-gray-100 dark:border-gray-800'}`}
+                  className={`bg-white dark:bg-surface-dark rounded-[2.5rem] p-5 shadow-sm border transition-all duration-500 overflow-hidden ${
+                    isCritical 
+                      ? 'bg-red-50 dark:bg-red-900/10 border-red-500 ring-1 ring-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.15)] scale-[1.01]' 
+                      : isSimulating 
+                      ? 'border-orange-500/50 ring-1 ring-orange-500/20'
+                      : isExpanded 
+                      ? 'border-primary ring-1 ring-primary/20' 
+                      : 'border-gray-100 dark:border-gray-800'
+                  }`}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex gap-4">
@@ -226,11 +290,95 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
                     </div>
                     <div className="text-right">
                       <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border mb-2 ${item.riskLevel === 'Low' ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border-green-100 dark:border-green-800' : 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 border-yellow-100 dark:border-yellow-800'}`}>Rủi ro: {item.risk}</div>
-                      <div className="text-primary font-black text-2xl leading-none">{item.roi}</div>
-                      <span className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">ROI / Chu kỳ</span>
+                      <div className={`text-2xl font-black leading-none transition-all duration-500 ${isSimulating ? (isCritical ? 'text-red-600 scale-110' : 'text-orange-500') : 'text-primary'}`}>
+                        {isSimulating ? `${simulatedRoi}%` : item.roi}
+                      </div>
+                      <span className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">
+                        {isSimulating ? 'ROI Mô phỏng' : 'ROI Dự kiến'}
+                      </span>
                     </div>
                   </div>
 
+                  {/* Laboratory Simulation Panel */}
+                  <div className={`mb-5 rounded-3xl transition-all duration-500 overflow-hidden ${isOpen ? 'max-h-[500px] mt-4 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className={`p-5 border ${isSimulating ? 'bg-slate-900 dark:bg-black/60 border-red-500/50 shadow-xl' : 'bg-slate-50 dark:bg-black/20 border-gray-100 dark:border-gray-800/50'}`}>
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-2">
+                          <span className={`material-symbols-outlined !text-xl ${isSimulating ? 'text-red-500 animate-pulse' : 'text-primary'}`}>science</span>
+                          <h4 className={`text-[10px] font-black uppercase tracking-widest ${isSimulating ? 'text-white' : 'text-gray-500'}`}>Lab Mô phỏng Rủi ro</h4>
+                        </div>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => setSimulatorMode(prev => ({ ...prev, [item.id]: mode === 'quick' ? 'pro' : 'quick' }))}
+                            className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-colors ${mode === 'pro' ? 'bg-primary text-black' : 'bg-white/10 text-gray-400'}`}
+                          >
+                            {mode === 'pro' ? 'Chế độ Pro' : 'Tùy chỉnh Pro'}
+                          </button>
+                          {isSimulating && (
+                            <button onClick={() => handleQuickSimulate(item.id, 'none')} className="text-[9px] font-black text-gray-400 uppercase hover:text-white">Đặt lại</button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {mode === 'quick' ? (
+                        <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+                          {[
+                            { id: 'drought', label: 'Hạn hán', icon: 'water_drop' },
+                            { id: 'pest', label: 'Sâu bệnh', icon: 'bug_report' },
+                            { id: 'market', label: 'Giá giảm', icon: 'trending_down' }
+                          ].map((sc) => (
+                            <button 
+                              key={sc.id}
+                              onClick={() => handleQuickSimulate(item.id, sc.id as Scenario)}
+                              className={`shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${scenario === sc.id ? 'bg-red-500 border-red-500 text-white shadow-glow' : 'bg-white dark:bg-surface-dark border-gray-200 dark:border-gray-800 text-gray-400 hover:border-primary/50'}`}
+                            >
+                              <span className="material-symbols-outlined !text-sm">{sc.icon}</span>
+                              {sc.label}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-4 mb-4">
+                          {[
+                            { id: 'weather', label: 'Thời tiết', min: -0.5, max: 0.1, step: 0.05 },
+                            { id: 'disease', label: 'Dịch bệnh', min: -0.5, max: 0, step: 0.05 },
+                            { id: 'market', label: 'Thị trường', min: -0.6, max: 0.2, step: 0.05 }
+                          ].map(cfg => (
+                            <div key={cfg.id} className="space-y-2">
+                              <div className="flex justify-between text-[9px] font-black uppercase text-gray-400">
+                                <span>{cfg.label}</span>
+                                <span className={impacts[cfg.id as keyof CustomImpact] < 0 ? 'text-red-500' : 'text-primary'}>
+                                  {impacts[cfg.id as keyof CustomImpact] > 0 ? '+' : ''}{(impacts[cfg.id as keyof CustomImpact] * 100).toFixed(0)}%
+                                </span>
+                              </div>
+                              <input 
+                                type="range" min={cfg.min} max={cfg.max} step={cfg.step} value={impacts[cfg.id as keyof CustomImpact]}
+                                onChange={(e) => updateCustomImpact(item.id, cfg.id as keyof CustomImpact, parseFloat(e.target.value))}
+                                className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-red-500"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {isSimulating && (
+                        <div className="space-y-3 animate-[fadeIn_0.3s_ease-out] pt-3 border-t border-white/5">
+                          <div className="flex items-center justify-between text-[10px] font-black text-white/70 uppercase">
+                            <span>Phân tích Tác động</span>
+                            <span className={Number(simulatedRoi) < item.baseRoiNum ? 'text-red-500' : 'text-primary'}>
+                              {Number(simulatedRoi) < item.baseRoiNum ? 'Rủi ro cao' : 'Khả quan'}
+                            </span>
+                          </div>
+                          <div className="flex gap-1 h-2 rounded-full overflow-hidden bg-white/10">
+                            <div className={`h-full transition-all duration-700 ${Number(simulatedRoi) < item.baseRoiNum ? (isCritical ? 'bg-red-600 shadow-glow' : 'bg-orange-500') : 'bg-primary'}`} style={{ width: `${Math.min(100, (Number(simulatedRoi) / item.baseRoiNum) * 100)}%` }}></div>
+                          </div>
+                          <p className="text-[9px] text-gray-400 font-medium italic">Gemini Pro Prediction: <span className="text-orange-400 font-bold">12.5% Prob.</span></p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Summary Grid */}
                   <div className="grid grid-cols-3 gap-1 bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-3 mb-4 border border-gray-100 dark:border-gray-800/50">
                     <div className="flex flex-col border-r border-gray-200 dark:border-gray-800 pr-2">
                       <span className="text-[8px] text-gray-400 uppercase font-black tracking-widest mb-1">Kỳ hạn</span>
@@ -242,145 +390,59 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
                     </div>
                     <div className="flex flex-col pl-2">
                       <span className="text-[8px] text-gray-400 uppercase font-black tracking-widest mb-1">Lợi nhuận</span>
-                      <span className="text-xs font-black text-primary">{item.profit}</span>
+                      <span className={`text-xs font-black transition-colors ${isCritical ? 'text-red-600' : isSimulating ? 'text-orange-500' : 'text-primary'}`}>
+                        ~{isSimulating ? `${(Number(simulatedRoi) * 20000).toLocaleString()}k` : item.profit}
+                      </span>
                     </div>
                   </div>
 
-                  {item.nextStep && !isExpanded && (
-                    <div className="flex items-center justify-between mb-5 px-1 animate-fadeIn">
-                      <div className="flex items-center gap-3">
-                        <div className={`size-8 rounded-xl flex items-center justify-center ${item.type === 'crop' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-500' : 'bg-red-50 dark:bg-red-900/30 text-red-500'}`}>
-                          <span className="material-symbols-outlined text-lg">{item.nextStep.icon}</span>
-                        </div>
-                        <div>
-                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{item.nextStep.title}</p>
-                          <p className="text-[11px] font-black dark:text-white">{item.nextStep.desc}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <div className="h-8 w-24">
-                          <svg className="w-full h-full stroke-primary fill-none" viewBox="0 0 100 30">
-                            <path d="M0 25 Q 10 25 20 20 T 40 15 T 60 10 T 80 5 T 100 2" stroke-linecap="round" strokeWidth="2.5" className="drop-shadow-[0_0_5px_rgba(19,236,73,0.5)]"></path>
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Expanded Detailed View */}
+                  {/* Details View */}
                   {isExpanded && (
-                    <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-800 animate-[slideDown_0.3s_ease-out]">
-                      <div className="space-y-6">
-                        {/* Project Duration & Timeline */}
-                        <div className="space-y-3">
-                          <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                             <span className="material-symbols-outlined !text-sm">calendar_today</span>
-                             Thời gian dự án
-                          </h4>
-                          <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-4">
-                             <div className="flex justify-between items-center mb-4">
-                                <div className="text-center flex-1">
-                                   <p className="text-[8px] text-gray-400 uppercase font-black tracking-widest mb-1">Bắt đầu</p>
-                                   <p className="text-xs font-black dark:text-white">{item.startDate}</p>
+                    <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-800 animate-[slideDown_0.3s_ease-out] space-y-6">
+                      <div className="space-y-3">
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                           <span className="material-symbols-outlined !text-sm">calendar_today</span>
+                           Tiến độ dự án
+                        </h4>
+                        <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-4">
+                           <div className="flex justify-between items-center mb-4">
+                              <div className="text-center flex-1">
+                                 <p className="text-[8px] text-gray-400 uppercase font-black mb-1 tracking-widest">Bắt đầu</p>
+                                 <p className="text-xs font-black dark:text-white">{item.startDate}</p>
+                              </div>
+                              <div className="flex flex-col items-center justify-center px-4 flex-1">
+                                 <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full relative overflow-hidden">
+                                    <div className="absolute left-0 top-0 h-full bg-primary" style={{ width: '65%' }}></div>
+                                 </div>
+                                 <span className="text-[8px] font-black text-primary uppercase mt-2">Active</span>
+                              </div>
+                              <div className="text-center flex-1">
+                                 <p className="text-[8px] text-gray-400 uppercase font-black mb-1 tracking-widest">Kết thúc</p>
+                                 <p className="text-xs font-black dark:text-white">{item.endDate}</p>
+                              </div>
+                           </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chỉ số thành công</h4>
+                        <div className="grid grid-cols-2 gap-3">
+                           {[
+                             { label: 'Tỉ lệ thành công', val: `${item.metrics.successRate}%`, icon: 'verified', color: 'text-primary' },
+                             { label: 'ROI Lịch sử', val: item.metrics.historicalRoi, icon: 'history_edu', color: 'text-blue-500' },
+                             { label: 'Nhu cầu TT', val: item.metrics.demand, icon: 'trending_up', color: 'text-orange-500' },
+                             { label: 'Chất lượng', val: `${item.metrics.yieldQuality}/100`, icon: 'workspace_premium', color: 'text-purple-500' }
+                           ].map(m => (
+                             <div key={m.label} className="bg-gray-50 dark:bg-gray-900/40 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-3">
+                                <div className={`size-8 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center ${m.color}`}>
+                                   <span className="material-symbols-outlined !text-base font-bold">{m.icon}</span>
                                 </div>
-                                <div className="flex flex-col items-center justify-center px-4 flex-1">
-                                   <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full relative overflow-hidden">
-                                      <div className="absolute left-0 top-0 h-full bg-primary" style={{ width: '65%' }}></div>
-                                   </div>
-                                   <span className="text-[8px] font-black text-primary uppercase mt-2">Đang thực hiện</span>
-                                </div>
-                                <div className="text-center flex-1">
-                                   <p className="text-[8px] text-gray-400 uppercase font-black tracking-widest mb-1">Kết thúc</p>
-                                   <p className="text-xs font-black dark:text-white">{item.endDate}</p>
+                                <div>
+                                   <p className="text-[7px] text-gray-400 uppercase font-black tracking-widest">{m.label}</p>
+                                   <p className="text-xs font-black dark:text-white">{m.val}</p>
                                 </div>
                              </div>
-                             <p className="text-[10px] text-center text-gray-500 font-medium">Dự án kéo dài {item.duration} theo chu kỳ chuẩn nông nghiệp chuyên nghiệp.</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Mô tả dự án</h4>
-                          <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-medium">{item.description}</p>
-                        </div>
-
-                        {/* Project Roadmap / Timeline */}
-                        <div className="space-y-3">
-                          <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lộ trình chi tiết (Roadmap)</h4>
-                          <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100 dark:before:bg-gray-800">
-                            {item.roadmap.map((phase, idx) => (
-                              <div key={idx} className="relative">
-                                <div className={`absolute -left-[1.375rem] top-1.5 size-3 rounded-full border-2 border-white dark:border-surface-dark transition-colors ${phase.status === 'completed' ? 'bg-primary shadow-[0_0_8px_rgba(19,236,73,0.5)]' : phase.status === 'current' ? 'bg-orange-500 animate-pulse' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className={`text-xs font-black ${phase.status === 'completed' ? 'text-primary' : phase.status === 'current' ? 'text-orange-500' : 'text-gray-400'}`}>{phase.name}</p>
-                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{phase.desc}</p>
-                                  </div>
-                                  <span className="text-[10px] font-bold text-gray-400">{phase.duration}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Profit Distribution Curve */}
-                        <div className="space-y-3">
-                          <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Dự phóng lợi nhuận (Sparkline)</h4>
-                          <div className="h-16 w-full bg-gray-50 dark:bg-black/20 rounded-2xl p-4 flex items-end justify-between gap-1">
-                             {item.profitCurve.map((val, idx) => (
-                               <div key={idx} className="flex-1 bg-primary/20 rounded-t-sm relative group cursor-help" style={{ height: `${(val / 20) * 100}%` }}>
-                                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[8px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">+{val}%</div>
-                                  <div className="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm" style={{ height: '30%' }}></div>
-                                </div>
-                             ))}
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Đánh giá rủi ro (Risk Matrix)</h4>
-                          <div className="grid grid-cols-3 gap-2">
-                            <div className="bg-gray-50 dark:bg-gray-900/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 text-center">
-                              <span className="text-[8px] text-gray-400 uppercase block mb-1">Thời tiết</span>
-                              <span className="text-[10px] font-black text-primary">{item.riskBreakdown.weather}</span>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-900/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 text-center">
-                              <span className="text-[8px] text-gray-400 uppercase block mb-1">Dịch bệnh</span>
-                              <span className="text-[10px] font-black text-yellow-500">{item.riskBreakdown.disease}</span>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-900/40 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 text-center">
-                              <span className="text-[8px] text-gray-400 uppercase block mb-1">Thị trường</span>
-                              <span className="text-[10px] font-black text-blue-500">{item.riskBreakdown.market}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chỉ số thành công (Metrics)</h4>
-                          <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-5 space-y-5">
-                            <div className="flex items-center gap-4">
-                               <div className="relative size-12 shrink-0">
-                                  <svg className="size-full -rotate-90" viewBox="0 0 36 36">
-                                     <circle cx="18" cy="18" r="16" fill="none" className="stroke-gray-200 dark:stroke-gray-800" strokeWidth="3"></circle>
-                                     <circle cx="18" cy="18" r="16" fill="none" className="stroke-primary" strokeWidth="3" strokeDasharray={`${item.metrics.successRate}, 100`} strokeLinecap="round"></circle>
-                                  </svg>
-                                  <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black">{Math.floor(item.metrics.successRate)}%</div>
-                               </div>
-                               <div className="flex-1">
-                                  <p className="text-[10px] font-bold text-gray-500 uppercase">Tỉ lệ thu hoạch đạt chuẩn</p>
-                                  <p className="text-xs font-black dark:text-white">Dữ liệu từ 15 vụ gần nhất</p>
-                               </div>
-                            </div>
-                            <div className="h-px bg-gray-100 dark:bg-gray-800"></div>
-                            <div className="grid grid-cols-2 gap-4">
-                               <div>
-                                  <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">ROI Trung bình</p>
-                                  <p className="text-base font-black text-primary mt-1">{item.metrics.historicalRoi}</p>
-                               </div>
-                               <div>
-                                  <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Nhu cầu</p>
-                                  <p className="text-base font-black text-orange-500 mt-1">{item.metrics.demand}</p>
-                               </div>
-                            </div>
-                          </div>
+                           ))}
                         </div>
                       </div>
                     </div>
@@ -388,38 +450,23 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
 
                   <div className="flex gap-3 mt-5">
                     <button 
+                      onClick={() => toggleSim(item.id)}
+                      className={`flex-1 py-3.5 rounded-2xl border transition-all text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 ${isOpen ? 'bg-slate-900 text-white dark:bg-white dark:text-black border-transparent shadow-lg' : 'border-gray-100 dark:border-gray-800 text-text-main-light dark:text-white hover:bg-gray-50'}`}
+                    >
+                      {isOpen ? 'Đóng Lab' : 'Mô phỏng Rủi ro'}
+                      <span className={`material-symbols-outlined !text-base transition-transform ${isOpen ? 'rotate-180' : ''}`}>science</span>
+                    </button>
+                    <button 
                       onClick={() => toggleExpand(item.id)}
                       className={`flex-1 py-3.5 rounded-2xl border transition-all text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 ${isExpanded ? 'bg-slate-900 text-white dark:bg-white dark:text-black border-transparent' : 'border-gray-100 dark:border-gray-800 text-text-main-light dark:text-white hover:bg-gray-50'}`}
                     >
-                      {isExpanded ? 'Đóng chi tiết' : 'Xem chi tiết'}
-                      <span className={`material-symbols-outlined !text-base transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
-                    <button className="flex-1 py-3.5 rounded-2xl bg-primary text-black text-[11px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
-                      Đăng ký ngay
-                      <span className="material-symbols-outlined !text-base">arrow_forward</span>
+                      {isExpanded ? 'Đóng' : 'Chi tiết'}
+                      <span className={`material-symbols-outlined !text-base transition-transform ${isExpanded ? 'rotate-180' : ''}`}>expand_more</span>
                     </button>
                   </div>
                 </div>
               );
             })}
-
-            {/* Expired Item - Static Mockup */}
-            <div className="bg-white dark:bg-surface-dark rounded-[2rem] p-5 shadow-sm border border-gray-100 dark:border-gray-800 opacity-60 relative grayscale cursor-not-allowed">
-              <div className="absolute inset-0 z-10 bg-white/10 dark:bg-black/10"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 text-white px-6 py-2.5 rounded-full font-black text-xs uppercase tracking-[0.2em] z-20 shadow-2xl whitespace-nowrap">Đã hết suất</div>
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex gap-4">
-                  <div className="size-16 shrink-0 rounded-2xl bg-cover bg-center border border-gray-100 dark:border-gray-700 shadow-inner opacity-50" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBLba-61Leq_2hN7eM2XyT0ukY8sgYW2qjP-YxuG7Q5Q5xlr2L7JJ_yyz3qyyHVURTo_poUBUe2M33938T-CDf_YnpPuHyYqP8BUY4p--nS9Hii2zGFARYZK_pXWQFJd0_zHOFkF62sIgwANWF2vnP0gkd_8LuftNnzbFT6RhE4duvDF-j50jXfQ4LDkKdem6QsPfq55IDM2cj-OLa1kXkR4PXSyBPCS-pQSxZ6D-39mayCCi9OKEDw8ztpFJmz0rTCNEHdJEKcaiKo")' }}></div>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-black text-text-main-light dark:text-white leading-tight truncate">Cà Tím Nhật Bản</h3>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-gray-400 font-black text-2xl leading-none">14%</div>
-                </div>
-              </div>
-              <button className="w-full py-3.5 rounded-2xl border border-gray-100 dark:border-gray-800 text-[10px] font-black uppercase tracking-widest text-gray-400">Nhận thông báo khi có suất mới</button>
-            </div>
           </div>
         </section>
       </main>
@@ -435,7 +482,7 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
         </div>
       </button>
 
-      {/* Global Bottom Navigation */}
+      {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-[70] bg-white dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 px-6 py-2 flex justify-between items-center h-20 pb-6 transition-colors shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <button onClick={() => onBack()} className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-primary transition-colors group">
           <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">home</span>
@@ -457,6 +504,7 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
 
       <style>{`
         @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .shadow-glow { box-shadow: 0 0 20px rgba(19, 236, 73, 0.4); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
