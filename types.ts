@@ -1,5 +1,5 @@
 
-export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings';
+export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'forgot-password' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings' | 'area-details' | 'reports' | 'add-task' | 'adoption';
 
 export interface SensorData {
   temp: number;

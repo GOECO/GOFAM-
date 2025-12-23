@@ -17,6 +17,7 @@ const PLANT_TYPES = [
 const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [selectedPlantType, setSelectedPlantType] = useState(PLANT_TYPES[0]);
+  const [customPlantName, setCustomPlantName] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -68,17 +69,30 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
       const base64Data = await blobToBase64(blob);
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-      // Improved Prompt with Plant Context
-      const plantContext = selectedPlantType.id === 'other' 
-        ? "một loại cây nông nghiệp" 
-        : `cây ${selectedPlantType.name}`;
+      // Build the plant context based on selection or custom input
+      let plantContext = selectedPlantType.name;
+      if (selectedPlantType.id === 'other' && customPlantName.trim()) {
+        plantContext = customPlantName.trim();
+      } else if (selectedPlantType.id === 'other') {
+        plantContext = "một loại cây nông nghiệp chưa xác định";
+      }
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: {
           parts: [
             { inlineData: { data: base64Data, mimeType: 'image/jpeg' } },
-            { text: `Đây là hình ảnh của ${plantContext}. Hãy phân tích hình ảnh này để xác định xem cây có đang mắc bệnh gì không. Trả về kết quả chẩn đoán chi tiết bằng tiếng Việt.` }
+            { 
+              text: `Bạn là một chuyên gia bệnh lý thực vật (Plant Pathologist). 
+              Hình ảnh này là của cây: ${plantContext}. 
+              Nhiệm vụ:
+              1. Phân tích các dấu hiệu bệnh lý, sâu hại hoặc thiếu hụt dinh dưỡng trên mẫu vật này.
+              2. Sử dụng kiến thức chuyên sâu về loài cây ${plantContext} để đối chiếu các triệu chứng đặc trưng.
+              3. Cung cấp chẩn đoán chính xác nhất, bao gồm tên bệnh, tên khoa học và mức độ nghiêm trọng.
+              4. Đưa ra phác đồ điều trị cụ thể cho loài cây này.
+              
+              Trả về kết quả bằng tiếng Việt theo định dạng JSON.` 
+            }
           ]
         },
         config: {
@@ -112,6 +126,10 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
       setIsScanning(false);
     }
   };
+
+  const activePlantDisplayName = (selectedPlantType.id === 'other' && customPlantName.trim()) 
+    ? customPlantName 
+    : selectedPlantType.name;
 
   return (
     <div className="h-screen w-full flex flex-col bg-black text-white relative overflow-hidden">
@@ -152,7 +170,7 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
         {isScanning ? (
           <div className="mt-8 px-8 py-3 bg-primary text-black rounded-full font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-glow animate-bounce">
              <span className="material-symbols-outlined animate-spin !text-lg">sync</span>
-             Đang chẩn đoán {selectedPlantType.name}...
+             Đang chẩn đoán {activePlantDisplayName}...
           </div>
         ) : (
           <div className="mt-8 flex flex-col items-center gap-2">
@@ -164,7 +182,7 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
 
       <div className="relative z-10 p-6 bg-gradient-to-t from-black via-black/95 to-transparent">
         {/* Plant Type Selection Chips */}
-        <div className="mb-6">
+        <div className="mb-4">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 px-1">Loại cây trồng</p>
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
             {PLANT_TYPES.map(type => (
@@ -186,6 +204,22 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
           </div>
         </div>
 
+        {/* Custom Plant Name Input - Only visible when "Other" is selected */}
+        {selectedPlantType.id === 'other' && (
+          <div className="mb-6 animate-[slideDown_0.3s_ease-out]">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-lg">edit_note</span>
+              <input 
+                type="text" 
+                value={customPlantName}
+                onChange={(e) => setCustomPlantName(e.target.value)}
+                placeholder="Tên cây trồng cụ thể (VD: Sầu riêng RI6...)"
+                className="w-full h-12 bg-white/5 border border-primary/30 rounded-2xl pl-12 pr-4 text-xs font-bold text-white outline-none focus:ring-1 focus:ring-primary focus:bg-white/10 transition-all placeholder:text-white/20"
+              />
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between gap-8 pb-4">
           <div className="size-14 rounded-2xl bg-white/5 overflow-hidden border border-white/10 group cursor-pointer active:scale-95 transition-all">
             <img src="https://picsum.photos/200/200" className="w-full h-full object-cover opacity-60 group-hover:opacity-100" alt="Gallery" />
@@ -205,6 +239,13 @@ const AIScan: React.FC<Props> = ({ onBack, onDiagnose }) => {
         </div>
       </div>
       <canvas ref={canvasRef} className="hidden" />
+
+      <style>{`
+        @keyframes slideDown {
+          from { transform: translateY(-10px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 };

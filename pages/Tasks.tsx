@@ -1,9 +1,9 @@
 
 import React, { useState, useMemo } from 'react';
-import { Task, Priority } from '../types';
+import { Task, Priority, Page } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
-interface Props { onBack: () => void; }
+interface Props { onBack: () => void; onNavigate: (page: Page) => void; }
 
 const AREAS_LIST = [
   'Vườn Rau Thủy Canh',
@@ -13,145 +13,72 @@ const AREAS_LIST = [
   'Khu vực chung'
 ];
 
-type ViewMode = 'Agenda' | 'Week' | 'Month';
+type ViewMode = 'Tháng' | 'Tuần' | 'Ngày' | 'Agenda';
 
-const Tasks: React.FC<Props> = ({ onBack }) => {
+const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
   const [tasks, setTasks] = useState<Task[]>([
     { 
       id: '1', 
-      title: 'Tưới Nước & Bón Phân', 
-      description: 'Sử dụng hệ thống tưới tự động khu A1', 
-      dueDate: '2025-05-16', 
-      time: '07:00', 
-      area: 'Vườn Rau Thủy Canh', 
+      title: 'Tưới nước tự động', 
+      description: 'Hệ thống thực hiện định kỳ', 
+      dueDate: '2023-10-24', 
+      time: '08:00', 
+      area: 'Khu A • IoT Block 1', 
       priority: 'Medium', 
-      completed: true,
+      completed: false,
       type: 'irrigation'
     },
     { 
       id: '2', 
+      title: 'Bón phân NPK', 
+      description: 'Đã xong bởi: Nguyễn Văn B', 
+      dueDate: '2023-10-24', 
+      time: '10:30', 
+      area: 'Nhà kính C1', 
+      priority: 'Medium', 
+      completed: true,
+      type: 'other'
+    },
+    { 
+      id: '3', 
       title: 'Kiểm tra sâu bệnh (AI)', 
-      description: 'Quét định kỳ toàn bộ khu vực B2', 
-      dueDate: '2025-05-16', 
-      time: '09:00', 
-      area: 'Chuồng Heo Số 2', 
+      description: 'Phát hiện khả nghi tại Khu vực C2. Mức độ lây lan dự báo: Cao.', 
+      dueDate: '2023-10-24', 
+      time: '15:00', 
+      area: 'Team: Kỹ thuật', 
       priority: 'High', 
       completed: false,
       type: 'inspection'
     },
     { 
-      id: '3', 
-      title: 'Vệ sinh chuồng heo', 
-      description: 'Dọn dẹp khu vực chuồng số 2', 
-      dueDate: '2025-05-17', 
-      time: '11:30', 
-      area: 'Chuồng số 2', 
+      id: '4', 
+      title: 'Thu hoạch Cà chua', 
+      description: 'Dự kiến: 500kg', 
+      dueDate: '2023-10-24', 
+      time: '16:30', 
+      area: 'Nhà kính C1', 
       priority: 'Low', 
       completed: false,
-      type: 'other'
+      type: 'harvest'
     }
   ]);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAiGenerating, setIsAiGenerating] = useState(false);
-  const [filterPriority, setFilterPriority] = useState<Priority | 'All'>('All');
-  const [viewMode, setViewMode] = useState<ViewMode>('Week');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [newTask, setNewTask] = useState<Partial<Task>>({
-    priority: 'Medium',
-    type: 'other',
-    area: AREAS_LIST[0]
-  });
-
-  // Calendar Logic
-  const currentMonth = new Date(selectedDate);
-  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay(); // 0 is Sun
-  
-  const calendarDays = useMemo(() => {
-    const days = [];
-    // Adjust for Monday start (T2 is index 1 in standard JS but we want it first)
-    const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-    
-    // Previous month filler
-    for (let i = 0; i < startOffset; i++) days.push(null);
-    
-    // Current month days
-    for (let i = 1; i <= daysInMonth; i++) {
-      const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      days.push({
-        day: i,
-        date: dateStr,
-        hasTasks: tasks.some(t => t.dueDate === dateStr)
-      });
-    }
-    return days;
-  }, [selectedDate, tasks]);
+  const [viewMode, setViewMode] = useState<ViewMode>('Tuần');
+  const [selectedDate, setSelectedDate] = useState<string>('2023-10-24');
+  const [filter, setFilter] = useState('Tất cả');
 
   const filteredTasks = useMemo(() => {
-    let result = tasks;
-    
-    // Date Filtering
-    if (viewMode !== 'Agenda') {
-      result = result.filter(t => t.dueDate === selectedDate);
-    }
-
-    // Priority Filtering
-    if (filterPriority !== 'All') {
-      result = result.filter(t => t.priority === filterPriority);
-    }
-
+    let result = tasks.filter(t => t.dueDate === selectedDate);
+    if (filter === 'Chưa làm') result = result.filter(t => !t.completed);
+    if (filter === 'Ưu tiên cao') result = result.filter(t => t.priority === 'High');
     return result;
-  }, [tasks, filterPriority, viewMode, selectedDate]);
-
-  const counts = useMemo(() => ({
-    All: tasks.length,
-    High: tasks.filter(t => t.priority === 'High').length,
-    Medium: tasks.filter(t => t.priority === 'Medium').length,
-    Low: tasks.filter(t => t.priority === 'Low').length,
-  }), [tasks]);
-
-  const handleAiAssist = async () => {
-    if (!newTask.title) return;
-    setIsAiGenerating(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `Hãy viết một hướng dẫn SOP ngắn gọn (3 bước) cho công việc nông trại: "${newTask.title}" tại khu vực "${newTask.area}". Trả lời bằng tiếng Việt.`;
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt
-      });
-      setNewTask(prev => ({ ...prev, description: response.text }));
-    } catch (err) {
-      console.error("AI Assist failed:", err);
-    } finally {
-      setIsAiGenerating(false);
-    }
-  };
-
-  const handleAddTask = () => {
-    if (!newTask.title) return;
-    const task: Task = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: newTask.title || '',
-      description: newTask.description || '',
-      dueDate: newTask.dueDate || new Date().toISOString().split('T')[0],
-      time: newTask.time || '08:00',
-      area: newTask.area || 'Khu vực chung',
-      priority: newTask.priority as Priority,
-      completed: false,
-      type: (newTask.type as any) || 'other'
-    };
-    setTasks([task, ...tasks]);
-    setIsModalOpen(false);
-    setNewTask({ priority: 'Medium', type: 'other', area: AREAS_LIST[0] });
-  };
+  }, [tasks, selectedDate, filter]);
 
   const getPriorityColor = (p: Priority) => {
     switch(p) {
       case 'High': return 'bg-red-500';
       case 'Medium': return 'bg-orange-500';
-      default: return 'bg-blue-500';
+      default: return 'bg-green-500';
     }
   };
 
@@ -160,260 +87,208 @@ const Tasks: React.FC<Props> = ({ onBack }) => {
       case 'irrigation': return 'water_drop';
       case 'inspection': return 'bug_report';
       case 'harvest': return 'agriculture';
-      default: return 'assignment';
+      default: return 'compost';
+    }
+  };
+
+  const getIconBg = (type: string) => {
+    switch(type) {
+      case 'irrigation': return 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'inspection': return 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400';
+      case 'harvest': return 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400';
+      default: return 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400';
     }
   };
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark pb-24 relative overflow-x-hidden font-display">
-      <header className="sticky top-0 z-50 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-md p-4 border-b border-gray-100 dark:border-gray-800 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-           <button onClick={onBack} className="size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center transition-colors">
-              <span className="material-symbols-outlined">arrow_back</span>
-           </button>
-           <h2 className="text-lg font-bold dark:text-white">Lịch Công Việc</h2>
-           <button className="size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center transition-colors">
-              <span className="material-symbols-outlined">tune</span>
-           </button>
-        </div>
-        <div className="flex bg-gray-100 dark:bg-black/20 p-1 rounded-xl">
-          {(['Agenda', 'Week', 'Month'] as ViewMode[]).map((m) => (
-            <button 
-              key={m} 
-              onClick={() => setViewMode(m)}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === m ? 'bg-white dark:bg-primary dark:text-black shadow-sm' : 'text-gray-500'}`}
-            >
-              {m === 'Agenda' ? 'Agenda' : m === 'Week' ? 'Tuần' : 'Tháng'}
+    <div className="min-h-screen bg-background-light dark:bg-background-dark flex flex-col font-display antialiased">
+      {/* Header */}
+      <header className="bg-white dark:bg-surface-dark shadow-sm z-30 shrink-0 sticky top-0">
+        <div className="flex items-center px-4 py-3 justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+              <span className="material-symbols-outlined text-text-main-light dark:text-white font-bold">arrow_back</span>
             </button>
-          ))}
+            <div>
+              <h2 className="text-text-main-light dark:text-white text-lg font-black leading-tight tracking-tight">Lịch Công Việc</h2>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-black uppercase tracking-widest">Tháng 10, 2023</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-text-main-light dark:text-white">
+              <span className="material-symbols-outlined font-bold">tune</span>
+            </button>
+            <button className="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-text-main-light dark:text-white">
+              <span className="material-symbols-outlined font-bold">more_vert</span>
+            </button>
+          </div>
         </div>
-      </header>
 
-      <div className="p-4 space-y-6">
-        {/* VIEW SPECIFIC CALENDAR HEADERS */}
-        {viewMode === 'Week' && (
-          <div className="grid grid-cols-7 gap-1 animate-fadeIn">
-            {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((d, i) => {
-              const dateObj = new Date();
-              dateObj.setDate(dateObj.getDate() + (i - (dateObj.getDay() || 7) + 1));
-              const dateStr = dateObj.toISOString().split('T')[0];
+        {/* View Switcher Tabs */}
+        <div className="px-4 pb-3">
+          <div className="flex bg-gray-100 dark:bg-black/20 p-1 rounded-xl">
+            {['Tháng', 'Tuần', 'Ngày', 'Agenda'].map((m) => (
+              <button 
+                key={m} 
+                onClick={() => setViewMode(m as ViewMode)}
+                className={`flex-1 text-center text-[10px] font-black uppercase tracking-widest py-2 rounded-lg transition-all ${viewMode === m ? 'bg-white dark:bg-surface-dark shadow-sm text-text-main-light dark:text-white' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Weekly Day Picker */}
+        <div className="border-t border-gray-100 dark:border-white/5 pt-3 pb-2">
+          <div className="grid grid-cols-7 px-4">
+            {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((d, i) => (
+              <div key={d} className={`text-center text-[9px] font-black uppercase mb-2 ${i === 3 ? 'text-primary' : 'text-gray-400'}`}>{d}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 px-3 pb-2 gap-1.5">
+            {[21, 22, 23, 24, 25, 26, 27].map((d, i) => {
+              const dateStr = `2023-10-${d}`;
               const isSelected = selectedDate === dateStr;
               return (
                 <button 
-                  key={d} 
+                  key={d}
                   onClick={() => setSelectedDate(dateStr)}
-                  className="flex flex-col items-center gap-2 group"
+                  className={`flex flex-col items-center justify-center h-11 rounded-xl transition-all relative ${isSelected ? 'bg-primary text-black font-black shadow-glow' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
                 >
-                  <span className="text-[10px] font-bold text-gray-400 uppercase">{d}</span>
-                  <div className={`size-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all ${isSelected ? 'bg-primary text-black shadow-glow' : 'hover:bg-gray-100 dark:hover:bg-white/5 dark:text-white'}`}>
-                    {dateObj.getDate()}
-                  </div>
-                  {tasks.some(t => t.dueDate === dateStr) && (
-                    <div className="size-1 bg-primary rounded-full mt-1"></div>
-                  )}
+                  <span className="text-sm font-bold">{d}</span>
+                  {d === 23 && <div className="absolute bottom-1.5 size-1 bg-red-500 rounded-full"></div>}
+                  {d === 25 && <div className="absolute bottom-1.5 size-1 bg-blue-500 rounded-full"></div>}
                 </button>
               );
             })}
           </div>
-        )}
-
-        {viewMode === 'Month' && (
-          <div className="bg-white dark:bg-surface-dark rounded-[2rem] p-4 border border-gray-100 dark:border-gray-800 shadow-sm animate-fadeIn">
-            <div className="flex items-center justify-between mb-4 px-2">
-              <h3 className="font-bold dark:text-white capitalize">
-                Tháng {currentMonth.getMonth() + 1}, {currentMonth.getFullYear()}
-              </h3>
-              <div className="flex gap-2">
-                <button className="size-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center"><span className="material-symbols-outlined text-sm">chevron_left</span></button>
-                <button className="size-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center"><span className="material-symbols-outlined text-sm">chevron_right</span></button>
-              </div>
-            </div>
-            <div className="grid grid-cols-7 gap-y-2 text-center">
-              {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(d => (
-                <span key={d} className="text-[10px] font-bold text-gray-400 uppercase mb-2">{d}</span>
-              ))}
-              {calendarDays.map((dayObj, i) => {
-                if (!dayObj) return <div key={`empty-${i}`} className="h-10"></div>;
-                const isSelected = selectedDate === dayObj.date;
-                return (
-                  <button 
-                    key={dayObj.date}
-                    onClick={() => setSelectedDate(dayObj.date)}
-                    className="h-10 relative flex flex-col items-center justify-center group"
-                  >
-                    <div className={`size-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isSelected ? 'bg-primary text-black shadow-glow' : 'dark:text-white group-hover:bg-gray-50 dark:group-hover:bg-white/5'}`}>
-                      {dayObj.day}
-                    </div>
-                    {dayObj.hasTasks && (
-                      <div className={`absolute bottom-0 size-1 rounded-full ${isSelected ? 'bg-black' : 'bg-primary'}`}></div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="flex justify-center pb-2">
+            <div className="w-8 h-1 bg-gray-200 dark:bg-white/10 rounded-full"></div>
           </div>
-        )}
+        </div>
+      </header>
 
-        {/* PRIORITY FILTERS */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ưu tiên: {filterPriority === 'All' ? 'Tất cả' : filterPriority}</span>
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
+        {/* Search & Filter Chips */}
+        <div className="px-4 py-4 space-y-4">
+          <div className="flex gap-2">
+            <div className="relative flex-1 group">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[20px] group-focus-within:text-primary transition-colors">search</span>
+              <input className="w-full h-11 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 rounded-xl pl-10 pr-4 text-xs font-bold dark:text-white focus:ring-2 focus:ring-primary/20 outline-none shadow-sm placeholder:text-gray-400" placeholder="Tìm nhiệm vụ, khu vực..." type="text"/>
+            </div>
+            <button className="relative flex items-center justify-center size-11 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 rounded-xl text-gray-600 dark:text-gray-300 shadow-sm active:scale-95 transition-transform">
+              <span className="material-symbols-outlined">filter_list</span>
+              <div className="absolute top-2.5 right-2.5 size-2 bg-primary rounded-full border-2 border-white dark:border-surface-dark"></div>
+            </button>
           </div>
+
           <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-            <button 
-              onClick={() => setFilterPriority('All')}
-              className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${filterPriority === 'All' ? 'bg-primary border-primary text-black shadow-glow' : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800 text-gray-500'}`}
-            >
-              Tất cả <span className="px-1.5 rounded-full bg-black/5 dark:bg-white/5">{counts.All}</span>
-            </button>
-            <button 
-              onClick={() => setFilterPriority('High')}
-              className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${filterPriority === 'High' ? 'bg-red-500 border-red-500 text-white' : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800 text-red-500'}`}
-            >
-              Cao <span className="px-1.5 rounded-full bg-black/10">{counts.High}</span>
-            </button>
-            <button 
-              onClick={() => setFilterPriority('Medium')}
-              className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${filterPriority === 'Medium' ? 'bg-orange-500 border-orange-500 text-white' : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800 text-orange-500'}`}
-            >
-              Vừa <span className="px-1.5 rounded-full bg-black/10">{counts.Medium}</span>
-            </button>
+            {['Tất cả', 'Chưa làm', 'Ưu tiên cao', 'Của tôi'].map((f) => (
+              <button 
+                key={f} 
+                onClick={() => setFilter(f)}
+                className={`shrink-0 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-text-main-light text-white dark:bg-white dark:text-black shadow-lg' : 'bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 text-gray-500'}`}
+              >
+                {f} {f === 'Chưa làm' && <span className="ml-1 px-1.5 rounded-md bg-gray-100 dark:bg-white/10 text-[9px]">3</span>}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* TASK LIST */}
-        <div className="space-y-4">
-          <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">
-            {viewMode === 'Agenda' ? 'Tất cả lịch trình' : `Công việc ngày ${selectedDate.split('-').reverse().join('/')}`}
-          </h3>
-          {filteredTasks.length > 0 ? filteredTasks.map((task) => (
-            <div key={task.id} className="relative grid grid-cols-[50px_1fr] gap-4 group">
-              <div className="flex flex-col items-center pt-2">
-                <span className="text-sm font-bold dark:text-white">{task.time}</span>
-                <div className="mt-2 flex-1 w-[2px] bg-primary/20 rounded-full group-last:bg-transparent"></div>
+        {/* Timeline View */}
+        <div className="px-4 flex flex-col gap-0">
+          {filteredTasks.map((task, i) => (
+            <div key={task.id} className="flex gap-4 group">
+              <div className="flex flex-col items-center w-12 pt-2 gap-1 shrink-0">
+                <span className="text-sm font-black text-text-main-light dark:text-white leading-none">{task.time}</span>
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">AM</span>
+                {i < filteredTasks.length - 1 && <div className="w-[1.5px] h-full bg-gray-200 dark:bg-white/10 my-1 rounded-full"></div>}
               </div>
-              <div className="bg-white dark:bg-surface-dark p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm relative cursor-pointer active:scale-[0.98] transition-all">
-                <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-full ${getPriorityColor(task.priority)}`}></div>
-                <div className="flex items-center gap-3">
-                  <div className={`size-10 rounded-xl flex items-center justify-center ${
-                    task.priority === 'High' ? 'bg-red-50 dark:bg-red-900/20 text-red-600' :
-                    task.priority === 'Medium' ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600' :
-                    'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
-                  }`}>
-                    <span className="material-symbols-outlined">{getIcon(task.type)}</span>
+
+              <div className={`flex-1 relative mb-6 rounded-3xl p-4 shadow-sm border transition-all active:scale-[0.98] ${task.completed ? 'bg-white/60 dark:bg-surface-dark/60 opacity-60' : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800 hover:shadow-md'}`}>
+                {task.completed && (
+                  <div className="absolute -right-1 -top-1 bg-white dark:bg-surface-dark rounded-full">
+                    <span className="material-symbols-outlined text-primary text-[24px] material-symbols-filled">check_circle</span>
                   </div>
-                  <div className="flex-1">
-                     <h4 className="font-bold dark:text-white text-sm">{task.title}</h4>
-                     <p className="text-[10px] text-gray-500 font-medium">{task.area} • {task.time}</p>
+                )}
+                
+                <div className={`absolute left-0 top-5 bottom-5 w-1.5 rounded-r-full ${getPriorityColor(task.priority)}`}></div>
+                
+                <div className="pl-3 pr-2">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`size-9 rounded-xl flex items-center justify-center ${getIconBg(task.type)}`}>
+                      <span className="material-symbols-outlined !text-xl">{getIcon(task.type)}</span>
+                    </div>
+                    <h4 className={`font-black text-sm text-text-main-light dark:text-white ${task.completed ? 'line-through decoration-gray-400' : ''}`}>
+                      {task.title}
+                    </h4>
                   </div>
-                  {task.completed && <span className="material-symbols-outlined text-green-500">check_circle</span>}
+
+                  {task.type === 'inspection' && (
+                    <div className="mb-3 bg-red-50 dark:bg-red-900/10 rounded-xl p-3 border border-red-100 dark:border-red-900/20 flex gap-3 items-start">
+                      <span className="material-symbols-outlined text-base text-red-500 font-bold mt-0.5">bug_report</span>
+                      <p className="text-[11px] text-red-700 dark:text-red-300 leading-relaxed font-bold italic">
+                        Phát hiện khả nghi tại <span className="underline">Khu vực C2</span>. Mức độ lây lan dự báo: Cao.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-y-2 mt-2">
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                      <span className="material-symbols-outlined !text-base">location_on</span>
+                      <span className="text-[11px] font-bold tracking-tight">{task.area}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                      <span className="material-symbols-outlined !text-base">{task.type === 'harvest' ? 'scale' : 'timer'}</span>
+                      <span className="text-[11px] font-bold tracking-tight">{task.type === 'harvest' ? 'Dự kiến: 500kg' : '30 phút'}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-gray-50 dark:border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {task.type === 'harvest' ? (
+                        <div className="flex -space-x-2">
+                          {[1, 2].map(u => (
+                            <img key={u} alt="User" className="size-6 rounded-full border-2 border-white dark:border-surface-dark shadow-sm" src={`https://i.pravatar.cc/100?u=${u}`} />
+                          ))}
+                          <div className="size-6 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center border-2 border-white dark:border-surface-dark text-[8px] font-black text-gray-500">+3</div>
+                        </div>
+                      ) : (
+                        <div className="size-6 rounded-full bg-primary/20 flex items-center justify-center border-2 border-white dark:border-surface-dark text-[9px] font-black text-primary-dark">H</div>
+                      )}
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        {task.type === 'harvest' ? 'Đội thu hoạch 1' : 'Hệ thống thực hiện'}
+                      </span>
+                    </div>
+                    {task.priority === 'High' ? (
+                      <span className="px-2.5 py-1 rounded-lg text-[9px] font-black bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200 uppercase tracking-widest">Khẩn cấp</span>
+                    ) : (
+                      <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${task.completed ? 'bg-gray-100 text-gray-500 dark:bg-white/10' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 animate-pulse'}`}>
+                        {task.completed ? 'Done' : 'Running'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          )) : (
-            <div className="py-12 flex flex-col items-center justify-center text-center opacity-40">
-              <span className="material-symbols-outlined !text-5xl mb-3">event_available</span>
-              <p className="text-xs font-bold uppercase tracking-widest dark:text-white">Không có lịch trình</p>
-            </div>
-          )}
+          ))}
         </div>
       </div>
 
-      {/* CREATE TASK MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-surface-dark rounded-t-[2.5rem] shadow-2xl animate-[slideUp_0.4s_ease-out] overflow-hidden">
-            <div className="p-6 pb-2 flex justify-between items-center border-b border-gray-100 dark:border-gray-800">
-              <h3 className="text-xl font-bold dark:text-white">Thêm Công Việc Mới</h3>
-              <button onClick={() => setIsModalOpen(false)} className="size-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 flex items-center justify-center">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto no-scrollbar">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Tên công việc</label>
-                <input 
-                  type="text" 
-                  value={newTask.title || ''}
-                  onChange={(e) => setNewTask({...newTask, title: e.target.value})}
-                  placeholder="VD: Kiểm tra độ ẩm đất..." 
-                  className="w-full h-14 bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 rounded-2xl px-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none dark:text-white"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center pr-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Chi tiết hướng dẫn</label>
-                  <button 
-                    onClick={handleAiAssist}
-                    disabled={!newTask.title || isAiGenerating}
-                    className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline disabled:opacity-40"
-                  >
-                    <span className={`material-symbols-outlined !text-[14px] ${isAiGenerating ? 'animate-spin' : ''}`}>auto_awesome</span>
-                    {isAiGenerating ? 'Đang viết...' : 'AI Soạn SOP'}
-                  </button>
-                </div>
-                <textarea 
-                  value={newTask.description || ''}
-                  onChange={(e) => setNewTask({...newTask, description: e.target.value})}
-                  rows={3}
-                  placeholder="Nhập ghi chú hoặc dùng AI hỗ trợ..." 
-                  className="w-full bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none dark:text-white resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Ngày thực hiện</label>
-                  <input 
-                    type="date" 
-                    value={newTask.dueDate || selectedDate}
-                    onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
-                    className="w-full h-14 bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 rounded-2xl px-4 text-sm font-medium outline-none dark:text-white"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Giờ</label>
-                  <input 
-                    type="time" 
-                    value={newTask.time || '08:00'}
-                    onChange={(e) => setNewTask({...newTask, time: e.target.value})}
-                    className="w-full h-14 bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 rounded-2xl px-4 text-sm font-medium outline-none dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Khu vực</label>
-                <select 
-                  value={newTask.area || ''}
-                  onChange={(e) => setNewTask({...newTask, area: e.target.value})}
-                  className="w-full h-14 bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 rounded-2xl px-4 text-sm font-medium outline-none dark:text-white appearance-none"
-                >
-                  {AREAS_LIST.map(area => <option key={area} value={area}>{area}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className="p-6 bg-gray-50 dark:bg-background-dark/50 flex gap-3">
-              <button onClick={() => setIsModalOpen(false)} className="flex-1 h-14 bg-white dark:bg-surface-dark border border-gray-200 rounded-2xl font-bold dark:text-white">Hủy</button>
-              <button onClick={handleAddTask} className="flex-[2] h-14 bg-primary text-black rounded-2xl font-bold shadow-lg shadow-primary/20">Lưu công việc</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="fixed bottom-6 right-6 z-50">
-        <button onClick={() => setIsModalOpen(true)} className="size-14 rounded-full bg-primary text-black shadow-xl shadow-primary/40 flex items-center justify-center active:scale-90 transition-transform">
-          <span className="material-symbols-outlined text-3xl font-bold">add</span>
+      {/* Floating Add Button */}
+      <div className="fixed bottom-6 right-6 z-[60]">
+        <button 
+          onClick={() => onNavigate('add-task')}
+          className="size-16 rounded-full bg-primary text-black shadow-xl shadow-primary/40 flex items-center justify-center active:scale-90 transition-all border-4 border-background-light dark:border-background-dark"
+        >
+          <span className="material-symbols-outlined text-3xl font-black">add</span>
         </button>
       </div>
 
       <style>{`
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+        .shadow-glow { box-shadow: 0 0 15px rgba(19, 236, 73, 0.4); }
       `}</style>
     </div>
   );
