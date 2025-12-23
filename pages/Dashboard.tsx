@@ -379,4 +379,23 @@ const Dashboard: React.FC<Props> = ({ onNavigate }) => {
             <span className="material-symbols-outlined text-3xl font-black">qr_code_scanner</span>
           </button>
         </div>
-        <button
+        <button onClick={() => onNavigate('reports')} className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-primary transition-colors group">
+          <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">analytics</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Báo cáo</span>
+        </button>
+        <button onClick={() => onNavigate('settings')} className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-primary transition-colors group">
+          <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">settings</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Cài đặt</span>
+        </button>
+      </nav>
+
+      <style>{`
+        .size-15 { width: 3.75rem; height: 3.75rem; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+    </div>
+  );
+};
+
+export default Dashboard;

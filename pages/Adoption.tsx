@@ -7,6 +7,13 @@ interface Props { onBack: () => void; onNavigate: (page: Page) => void; }
 const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
   const [activeTab, setActiveTab] = useState('crop');
 
+  const roiChartData = [
+    { label: 'Cà Chua', planned: 15, actual: 14.2 },
+    { label: 'Dưa Lưới', planned: 22, actual: 18.5 },
+    { label: 'Xà Lách', planned: 12, actual: 12.8 },
+    { label: 'Gà Sạch', planned: 18, actual: 19.1 },
+  ];
+
   return (
     <div className="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-gray-100 transition-colors duration-200">
       {/* Sticky Header */}
@@ -47,6 +54,54 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
             </button>
           </div>
         </div>
+
+        {/* ROI Analysis Bar Chart Section */}
+        <section className="px-4 pt-6">
+          <div className="bg-white dark:bg-surface-dark rounded-[2.5rem] p-6 shadow-soft border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col">
+                <h2 className="text-sm font-black text-text-main-light dark:text-white uppercase tracking-tight">Phân tích ROI Dự kiến</h2>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">So sánh Kế hoạch vs Thực tế</p>
+              </div>
+              <div className="flex flex-col items-end gap-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="size-2 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                  <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Kế hoạch</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="size-2 rounded-full bg-primary shadow-glow"></div>
+                  <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Dự phóng</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-end justify-between h-40 gap-4 mt-2 relative">
+              {/* Grid Lines */}
+              <div className="absolute inset-0 flex flex-col justify-between py-1 pointer-events-none opacity-5 dark:opacity-10">
+                {[0, 1, 2, 3].map(i => <div key={i} className="w-full border-b border-text-main-light dark:border-white border-dashed"></div>)}
+              </div>
+
+              {roiChartData.map((data, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-3 h-full justify-end relative z-10 group">
+                  <div className="flex gap-1 items-end h-full w-full justify-center">
+                    <div 
+                      className="w-2.5 bg-gray-100 dark:bg-gray-800 rounded-t-lg transition-all duration-1000 group-hover:bg-gray-200 dark:group-hover:bg-gray-700"
+                      style={{ height: `${(data.planned / 25) * 100}%` }}
+                    ></div>
+                    <div 
+                      className="w-2.5 bg-primary rounded-t-lg transition-all duration-1000 shadow-glow group-hover:scale-y-105 origin-bottom"
+                      style={{ height: `${(data.actual / 25) * 100}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-[9px] font-black text-text-main-light dark:text-white">{data.actual}%</span>
+                    <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter truncate w-full text-center">{data.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* High ROI Horizontal Section */}
         <section className="pt-8 pb-2">
@@ -223,7 +278,7 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
             <div className="bg-white dark:bg-surface-dark rounded-[2rem] p-5 shadow-sm border border-gray-100 dark:border-gray-800 transition-all active:scale-[0.99]">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-4">
-                  <div className="size-16 shrink-0 rounded-2xl bg-cover bg-center border border-gray-100 dark:border-gray-700 shadow-inner" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIZVfptTZdxH44ojjmJluJhbJeQHjHH1ow-0LWz16U7v6RBSCgW_UcBnuubNvFRO3BlxvuRZWY915GiaPiw2LvwO1WffUKhdFx9eUlHl8rf5V-6SzblTrrm-ur5Z86uNX-7KzD3cV1pn8FQ5JIYkh4f7lckDOgJtOK6WMhWTA8pbekvofW0tvRunXv-8qXblPdfc-KfNxMoge0Expwm6dGglvczP767DtwgJ9vdmc1R4gsrDq4dJLHJRBw9UxGZYeruCaCs9k8V5x_")' }}></div>
+                  <div className="size-16 shrink-0 rounded-2xl bg-cover bg-center border border-gray-100 dark:border-gray-700 shadow-inner" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCVptTZdxH44ojjmJluJhbJeQHjHH1ow-0LWz16U7v6RBSCgW_UcBnuubNvFRO3BlxvuRZWY915GiaPiw2LvwO1WffUKhdFx9eUlHl8rf5V-6SzblTrrm-ur5Z86uNX-7KzD3cV1pn8FQ5JIYkh4f7lckDOgJtOK6WMhWTA8pbekvofW0tvRunXv-8qXblPdfc-KfNxMoge0Expwm6dGglvczP767DtwgJ9vdmc1R4gsrDq4dJLHJRBw9UxGZYeruCaCs9k8V5x_")' }}></div>
                   <div className="min-w-0">
                     <h3 className="text-base font-black text-text-main-light dark:text-white leading-tight truncate">Gà Thả Vườn</h3>
                     <div className="flex flex-wrap gap-2 mt-2">

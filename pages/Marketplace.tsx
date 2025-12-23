@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
+import { GoogleGenAI } from "@google/genai";
 
 interface Props { onBack: () => void; onFindNearby: () => void; }
 
@@ -14,6 +15,11 @@ interface Product {
 }
 
 const Marketplace: React.FC<Props> = ({ onBack, onFindNearby }) => {
+  const [isCreatorOpen, setIsCreatorOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+
   const products: Product[] = [
     { id: 'p1', name: 'Phân bón NPK Đầu Trâu', brand: 'Bình Điền', price: '250.000đ', oldPrice: '295.000đ', rating: '4.8', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB4aKhur3d10b304mm0S7prZDf_ASpRnO5TJBZI0BZYCT0ddbJ1iph_6Z3qqUwxgVsctBS88E1g7_EeJSncEya09dxc0jUr4fD1-r5xei2QclEuSUwNQx-giU1e8ZCOk0pTCwUfBIdMLQBMqOkDT0Pia1hYf_4TuR0UTLva7cSYh9A6SvkpaI3E79fCngwS1TfCLZXZv0bCOTG894CuTFJ5xn-zj08NvXbYw80fc-m1rTpdUZUcVjnJfFwC0YfbBUCPRp2_Fys5TKjz' },
     { id: 'p2', name: 'Hạt giống Lúa ST25', brand: 'Hồ Quang Cua', price: '120.000đ', rating: '5.0', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCgwj0YjQJS17viqCR7mCKFN3mpcdWTAWGEgx3KzZ7NFAMvNb-DgfwxZ3czmjy0lwIEtPFE17LwoWH-LhbaXccrEue4f2ED9tZKz_1tKLnu0qV89D9lfjQIczhJcz0AowFNzksx0tRn9kXXV2nQdA8ArGQGGYcBC5FklMv9btuHQxoZoCyhqAp-Byc8hfNj3W0CHM8Ik1Gl1hqpSNxDR60_SYgDkvf5y_PufmvWJK7gx28CzggCrGkl9Gt1-2x_uwjZKJ9f56HazUa1' },
@@ -21,11 +27,9 @@ const Marketplace: React.FC<Props> = ({ onBack, onFindNearby }) => {
     { id: 'p4', name: 'Thuốc Neem Oil Bio', brand: 'Green Life', price: '85.000đ', rating: '4.5', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB4PNRYmHtKNe-dy7BMNOq7iZBRcH8iisKqYevc0ELSKLUCiqCkHqiZrrtQfwnbWn5FBnWwFBPoT-7da0VUmxHtrz5hp5W6AWwrnrMfacHKeDTiRXn2Sxij_i-zWXmMclUe-8BEcQMyjAEAD_FWbg3L9EcN5azvGHeuMadt6bYpoJ6GdYaC4cty65tZ8boBPdqClRRzeAoHGjH6OLku9o6-6v_bRMt9zTsHGoWfeWch4PFATNOMfycgKOT9gMuCwOBSKJF8RVNDXNCM' },
   ];
 
-  // Cart state where key is product ID and value is quantity
   const [cart, setCart] = useState<Record<string, number>>({});
 
   const totalItems = useMemo(() => {
-    // FIX: Explicitly type sum and qty to resolve "unknown" operator error
     return Object.values(cart).reduce((sum: number, qty: number) => sum + qty, 0);
   }, [cart]);
 
@@ -33,14 +37,41 @@ const Marketplace: React.FC<Props> = ({ onBack, onFindNearby }) => {
     setCart(prev => {
       const currentQty = prev[productId] || 0;
       const newQty = Math.max(0, currentQty + delta);
-      
       if (newQty === 0) {
         const { [productId]: _, ...rest } = prev;
         return rest;
       }
-      
       return { ...prev, [productId]: newQty };
     });
+  };
+
+  const handleGenerateImage = async () => {
+    if (!aiPrompt.trim() || isGenerating) return;
+    setIsGenerating(true);
+    setGeneratedImage(null);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [{ text: `A professional, high-quality photograph of a specialized pro-farming asset: ${aiPrompt}. The image should look like a product listing in a modern agricultural marketplace, sharp focus, neutral studio background.` }],
+        },
+      });
+
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          const base64Data = part.inlineData.data;
+          setGeneratedImage(`data:image/png;base64,${base64Data}`);
+          break;
+        }
+      }
+    } catch (err) {
+      console.error("Image generation failed:", err);
+      alert("AI Generation currently unavailable. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -72,12 +103,37 @@ const Marketplace: React.FC<Props> = ({ onBack, onFindNearby }) => {
         </div>
       </header>
 
+      {/* AI CREATOR ENTRY */}
+      <div className="px-4 py-4">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-primary/20 dark:to-surface-dark rounded-[2rem] p-6 shadow-xl border border-white/10 relative overflow-hidden group">
+           <div className="absolute -right-4 -top-4 size-32 bg-primary/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+           <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="size-10 rounded-2xl bg-primary flex items-center justify-center text-black shadow-glow">
+                    <span className="material-symbols-outlined font-black">auto_awesome</span>
+                 </div>
+                 <div>
+                    <h3 className="text-white font-bold text-base leading-tight">AI Asset Creator</h3>
+                    <p className="text-primary text-[10px] font-black uppercase tracking-widest">Visualizer Pro</p>
+                 </div>
+              </div>
+              <p className="text-gray-400 text-xs leading-relaxed mb-4">Bạn cần một thiết bị tùy chỉnh? Sử dụng AI để phác thảo hình ảnh vật tư lý tưởng của bạn.</p>
+              <button 
+                onClick={() => setIsCreatorOpen(true)}
+                className="bg-white dark:bg-primary text-black px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+              >
+                Trải nghiệm ngay
+              </button>
+           </div>
+        </div>
+      </div>
+
       <div className="p-4">
         <button 
           onClick={onFindNearby}
-          className="w-full bg-slate-900 dark:bg-primary text-white dark:text-black py-4 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] transition-all"
+          className="w-full bg-slate-900 dark:bg-surface-dark text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] transition-all border border-white/5"
         >
-          <span className="material-symbols-outlined">location_on</span>
+          <span className="material-symbols-outlined text-primary">location_on</span>
           Tìm cửa hàng vật tư gần bạn
         </button>
       </div>
@@ -119,8 +175,6 @@ const Marketplace: React.FC<Props> = ({ onBack, onFindNearby }) => {
                     {p.oldPrice && <p className="text-[10px] text-gray-400 line-through leading-none">{p.oldPrice}</p>}
                     <p className="text-lg font-black text-primary leading-none mt-1 truncate">{p.price}</p>
                   </div>
-                  
-                  {/* DYNAMIC CART BUTTON */}
                   <div className="flex items-center">
                     {qty === 0 ? (
                       <button 
@@ -156,19 +210,68 @@ const Marketplace: React.FC<Props> = ({ onBack, onFindNearby }) => {
         })}
       </div>
 
+      {/* AI CREATOR MODAL */}
+      {isCreatorOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white dark:bg-surface-dark rounded-[2.5rem] shadow-2xl overflow-hidden animate-[slideUp_0.4s_ease-out]">
+             <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-slate-50 dark:bg-black/20">
+                <div className="flex items-center gap-3">
+                   <div className="size-8 rounded-lg bg-primary flex items-center justify-center text-black">
+                      <span className="material-symbols-outlined !text-xl">brush</span>
+                   </div>
+                   <h2 className="font-black text-sm uppercase tracking-widest">Thiết kế AI Pro</h2>
+                </div>
+                <button onClick={() => setIsCreatorOpen(false)} className="size-8 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 flex items-center justify-center">
+                   <span className="material-symbols-outlined">close</span>
+                </button>
+             </div>
+             
+             <div className="p-6 space-y-6">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Bạn muốn tạo gì?</label>
+                   <textarea 
+                     value={aiPrompt}
+                     onChange={(e) => setAiPrompt(e.target.value)}
+                     placeholder="Ví dụ: Hệ thống tưới nhỏ giọt thông minh tích hợp pin mặt trời, màu xanh neon..."
+                     className="w-full h-24 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-background-dark text-sm outline-none focus:ring-1 focus:ring-primary dark:text-white transition-all resize-none"
+                   />
+                </div>
+
+                {isGenerating && (
+                  <div className="flex flex-col items-center justify-center py-8 gap-3">
+                     <div className="size-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                     <p className="text-[10px] font-black text-primary uppercase tracking-widest animate-pulse">Đang phác thảo bằng AI...</p>
+                  </div>
+                )}
+
+                {generatedImage && (
+                  <div className="rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-lg animate-[fadeIn_0.3s_ease-out]">
+                     <img src={generatedImage} alt="AI Created" className="w-full h-auto" />
+                     <div className="p-3 bg-gray-50 dark:bg-black/20 flex justify-between items-center">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Phác thảo từ Gemini Vision</span>
+                        <button className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">Tải về máy</button>
+                     </div>
+                  </div>
+                )}
+
+                <button 
+                  onClick={handleGenerateImage}
+                  disabled={isGenerating || !aiPrompt.trim()}
+                  className="w-full h-14 bg-slate-900 text-white dark:bg-primary dark:text-black rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined">{isGenerating ? 'sync' : 'auto_awesome'}</span>
+                  {isGenerating ? 'Đang tạo...' : 'Tạo hình ảnh'}
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
-        @keyframes scaleIn {
-          from { transform: scale(0.5); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-        @keyframes slideInRight {
-          from { transform: translateX(20px); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(5px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes scaleIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes slideInRight { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
       `}</style>
     </div>
   );

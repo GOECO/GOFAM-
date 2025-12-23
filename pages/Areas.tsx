@@ -58,8 +58,8 @@ const AREAS: Area[] = [
     crop: 'Heo thịt',
     size: '80 m²',
     count: '45 con',
-    health: '75% Khá',
-    healthColor: 'yellow',
+    health: '45% Nguy cấp',
+    healthColor: 'red',
     state: 'warning',
     img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuZaMNvoKzwEcybarEp4oDKa2NMMbHdDUn9_CnU6F5xEmwNhLCMLITHGDwlxFX0YttTbX9Khoa9dqkT6Rof5H7Ucn2na2DNsMAbLd0yzcRLKhITb_W4XTwZ1jT-KC1_YFAqCwK6kffq3h4bMw_ecjYQ3n0t8xO8fzwlY9Dh2HoiZesuy6Lx5iPbqpD932jm97Gcg5MQwermjsYD3Aw7ehadIgpvqxIjLlg66BXEFHFNJzYbJa_BCl34Lmw06wrf7GlH0_hVtFef6BOJ',
     growthStage: 'Giai đoạn vỗ béo',
@@ -162,150 +162,169 @@ const Areas: React.FC<Props> = ({ onBack, onNavigate }) => {
 
       {/* Area List */}
       <div className="flex flex-col gap-4 p-4 pt-2">
-        {AREAS.map((area) => (
-          <div 
-            key={area.id}
-            onClick={(e) => toggleExpand(area.id, e)}
-            className={`group relative flex flex-col rounded-[2rem] bg-white dark:bg-surface-dark shadow-sm border transition-all duration-300 ${
-              expandedId === area.id 
-                ? 'border-primary ring-1 ring-primary/20 scale-[1.02] shadow-xl' 
-                : 'border-gray-100 dark:border-gray-800 hover:border-primary/40'
-            }`}
-          >
-            {/* Primary Info Row */}
-            <div className="flex gap-4 p-4">
-              <div 
-                className="w-20 h-20 shrink-0 rounded-2xl bg-cover bg-center shadow-inner border border-gray-100 dark:border-gray-700" 
-                style={{ backgroundImage: `url("${area.img}")` }}
-              ></div>
+        {AREAS.map((area) => {
+          const isCritical = area.id === '2';
+          const isExpanded = expandedId === area.id;
 
-              <div className="flex flex-col justify-between flex-1 min-w-0">
-                <div className="flex justify-between items-start gap-2">
-                  <h3 className="text-text-main-light dark:text-white text-base font-black leading-tight truncate tracking-tight">{area.name}</h3>
-                  <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
-                    area.healthColor === 'green' 
-                    ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-100 dark:border-green-800' 
-                    : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-100 dark:border-yellow-800'
-                  }`}>
-                    {area.health}
-                  </span>
-                </div>
+          return (
+            <div 
+              key={area.id}
+              onClick={(e) => toggleExpand(area.id, e)}
+              className={`group relative flex flex-col rounded-[2rem] shadow-sm border transition-all duration-300 ${
+                isCritical 
+                  ? 'bg-red-50 dark:bg-red-900/20 border-red-500 ring-1 ring-red-500/20' 
+                  : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800 hover:border-primary/40'
+              } ${
+                isExpanded 
+                  ? (isCritical ? 'scale-[1.02] shadow-xl' : 'border-primary ring-1 ring-primary/20 scale-[1.02] shadow-xl') 
+                  : ''
+              }`}
+            >
+              {/* Primary Info Row */}
+              <div className="flex gap-4 p-4">
+                <div 
+                  className="w-20 h-20 shrink-0 rounded-2xl bg-cover bg-center shadow-inner border border-gray-100 dark:border-gray-700" 
+                  style={{ backgroundImage: `url("${area.img}")` }}
+                ></div>
 
-                <div className="flex items-center gap-2.5 my-1.5 text-[9px] text-gray-400 font-black uppercase tracking-widest">
-                  <span className="text-text-main-light dark:text-gray-200">{area.crop}</span>
-                  <span className="w-1 h-1 rounded-full bg-gray-200 dark:bg-gray-700"></span>
-                  <span>{area.size}</span>
-                </div>
-
-                <div className="flex items-end justify-between">
-                  <div className="flex items-center gap-1.5">
-                    {area.state === 'active' && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                        </span>
-                        <span className="text-[9px] font-black text-green-600 dark:text-green-400 uppercase tracking-widest">Ổn định</span>
-                      </div>
-                    )}
-                    {area.state === 'warning' && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[16px] text-red-500 font-bold">warning</span>
-                        <span className="text-[9px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest">Chú ý</span>
-                      </div>
-                    )}
-                    {area.state === 'harvest' && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[16px] text-orange-500 font-bold">agriculture</span>
-                        <span className="text-[9px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest">Thu hoạch</span>
-                      </div>
-                    )}
+                <div className="flex flex-col justify-between flex-1 min-w-0">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className={`text-base font-black leading-tight truncate tracking-tight ${isCritical ? 'text-red-900 dark:text-red-100' : 'text-text-main-light dark:text-white'}`}>
+                      {area.name}
+                    </h3>
+                    <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
+                      area.healthColor === 'green' 
+                      ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-100 dark:border-green-800' 
+                      : area.healthColor === 'red'
+                      ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 border-red-200 dark:border-red-800'
+                      : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-100 dark:border-yellow-800'
+                    }`}>
+                      {area.health}
+                    </span>
                   </div>
-                  <span className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${expandedId === area.id ? 'rotate-180 text-primary' : ''}`}>expand_more</span>
+
+                  <div className={`flex items-center gap-2.5 my-1.5 text-[9px] font-black uppercase tracking-widest ${isCritical ? 'text-red-600/70 dark:text-red-300/60' : 'text-gray-400'}`}>
+                    <span className={`${isCritical ? 'text-red-900 dark:text-red-200' : 'text-text-main-light dark:text-gray-200'}`}>{area.crop}</span>
+                    <span className={`w-1 h-1 rounded-full ${isCritical ? 'bg-red-200 dark:bg-red-800' : 'bg-gray-200 dark:bg-gray-700'}`}></span>
+                    <span>{area.size}</span>
+                  </div>
+
+                  <div className="flex items-end justify-between">
+                    <div className="flex items-center gap-1.5">
+                      {area.state === 'active' && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                          </span>
+                          <span className="text-[9px] font-black text-green-600 dark:text-green-400 uppercase tracking-widest">Ổn định</span>
+                        </div>
+                      )}
+                      {(area.state === 'warning' || isCritical) && (
+                        <div className="flex items-center gap-1.5">
+                          <span className={`material-symbols-outlined text-[16px] font-bold ${isCritical ? 'text-red-600' : 'text-orange-500'}`}>warning</span>
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                            {isCritical ? 'Khẩn cấp' : 'Chú ý'}
+                          </span>
+                        </div>
+                      )}
+                      {area.state === 'harvest' && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[16px] text-orange-500 font-bold">agriculture</span>
+                          <span className="text-[9px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest">Thu hoạch</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className={`material-symbols-outlined transition-transform duration-300 ${isExpanded ? 'rotate-180 text-primary' : 'text-gray-400'} ${isCritical && isExpanded ? 'text-red-600' : ''}`}>expand_more</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Expandable Content Area */}
-            {expandedId === area.id && (
-              <div className="px-4 pb-5 animate-[slideDown_0.3s_ease-out] space-y-5 border-t border-gray-50 dark:border-gray-800/50 mt-1 pt-5">
-                {/* 1. Quick Sensors */}
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    { label: 'Nhiệt độ', val: area.sensors.temp, icon: 'thermostat', color: 'text-red-500' },
-                    { label: 'Độ ẩm', val: area.sensors.hum, icon: 'water_drop', color: 'text-blue-500' },
-                    { label: 'Độ ẩm Đất', val: area.sensors.soil, icon: 'potted_plant', color: 'text-orange-500' },
-                    { label: 'Độ pH', val: area.sensors.ph, icon: 'science', color: 'text-primary' }
-                  ].filter(s => s.val).map((stat, i) => (
-                    <div key={i} className="bg-gray-50 dark:bg-black/20 rounded-2xl p-2.5 flex flex-col items-center border border-transparent hover:border-gray-100 dark:hover:border-white/5 transition-all">
-                      <span className={`material-symbols-outlined !text-lg ${stat.color} mb-1.5`}>{stat.icon}</span>
-                      <span className="text-xs font-black dark:text-white leading-none">{stat.val}</span>
-                      <span className="text-[7px] text-gray-400 uppercase font-black tracking-tighter mt-1">{stat.label}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* 2. Crop Status Detail */}
-                <div className="bg-gray-50/50 dark:bg-black/10 rounded-2xl p-4 border border-gray-100 dark:border-white/5">
-                  <div className="flex justify-between items-center mb-3 px-1">
-                    <h4 className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Tình trạng cây trồng</h4>
-                    <span className="text-[9px] font-bold text-primary uppercase">Ngày thứ 45</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex justify-between text-[11px] font-black">
-                        <span className="text-gray-500 uppercase tracking-tight">Giai đoạn: {area.growthStage}</span>
-                        <span className="text-primary">{100 - (area.daysToHarvest * 2)}%</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary shadow-glow" style={{ width: `${100 - (area.daysToHarvest * 2)}%` }}></div>
-                      </div>
-                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest italic">Dự kiến thu hoạch sau {area.daysToHarvest} ngày</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Recent Tasks List */}
-                <div>
-                  <div className="flex justify-between items-center mb-3 px-1">
-                    <h4 className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Nhiệm vụ gần đây</h4>
-                    <button onClick={(e) => { e.stopPropagation(); onNavigate('tasks'); }} className="text-[9px] font-black text-primary uppercase hover:underline">Xem lịch</button>
-                  </div>
-                  <div className="space-y-2">
-                    {area.recentTasks.map(task => (
-                      <div key={task.id} className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 shadow-sm">
-                        <div className="flex items-center gap-3">
-                          <div className={`size-7 rounded-lg flex items-center justify-center ${task.status === 'completed' ? 'bg-green-50 dark:bg-green-900/20 text-green-500' : 'bg-orange-50 dark:bg-orange-900/20 text-orange-500'}`}>
-                            <span className="material-symbols-outlined !text-base">{task.status === 'completed' ? 'check_circle' : 'schedule'}</span>
-                          </div>
-                          <span className={`text-xs font-bold ${task.status === 'completed' ? 'text-gray-400 line-through' : 'dark:text-white'}`}>{task.title}</span>
-                        </div>
-                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{task.time}</span>
+              {/* Expandable Content Area */}
+              {isExpanded && (
+                <div className={`px-4 pb-5 animate-[slideDown_0.3s_ease-out] space-y-5 border-t mt-1 pt-5 ${isCritical ? 'border-red-100 dark:border-red-900/40' : 'border-gray-50 dark:border-gray-800/50'}`}>
+                  {/* 1. Quick Sensors */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { label: 'Nhiệt độ', val: area.sensors.temp, icon: 'thermostat', color: 'text-red-500' },
+                      { label: 'Độ ẩm', val: area.sensors.hum, icon: 'water_drop', color: 'text-blue-500' },
+                      { label: 'Độ ẩm Đất', val: area.sensors.soil, icon: 'potted_plant', color: 'text-orange-500' },
+                      { label: 'Độ pH', val: area.sensors.ph, icon: 'science', color: 'text-primary' }
+                    ].filter(s => s.val).map((stat, i) => (
+                      <div key={i} className={`rounded-2xl p-2.5 flex flex-col items-center border transition-all ${isCritical ? 'bg-white/40 dark:bg-black/40 border-red-100 dark:border-red-900/30' : 'bg-gray-50 dark:bg-black/20 border-transparent hover:border-gray-100 dark:hover:border-white/5'}`}>
+                        <span className={`material-symbols-outlined !text-lg ${stat.color} mb-1.5`}>{stat.icon}</span>
+                        <span className={`text-xs font-black leading-none ${isCritical ? 'text-red-900 dark:text-red-100' : 'dark:text-white'}`}>{stat.val}</span>
+                        <span className={`text-[7px] uppercase font-black tracking-tighter mt-1 ${isCritical ? 'text-red-600/70 dark:text-red-400/60' : 'text-gray-400'}`}>{stat.label}</span>
                       </div>
                     ))}
                   </div>
-                </div>
 
-                {/* Bottom Actions */}
-                <div className="flex gap-3 pt-2">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); onNavigate('area-details'); }}
-                    className="flex-1 h-11 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-black text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined !text-base">analytics</span>
-                    Dữ liệu chi tiết
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); onNavigate('add-task'); }}
-                    className="size-11 rounded-xl border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary transition-colors active:scale-90"
-                  >
-                    <span className="material-symbols-outlined">add_task</span>
-                  </button>
+                  {/* 2. Crop Status Detail */}
+                  <div className={`rounded-2xl p-4 border ${isCritical ? 'bg-red-100/30 dark:bg-red-900/30 border-red-200 dark:border-red-800' : 'bg-gray-50/50 dark:bg-black/10 border-gray-100 dark:border-white/5'}`}>
+                    <div className="flex justify-between items-center mb-3 px-1">
+                      <h4 className={`text-[9px] font-black uppercase tracking-widest ${isCritical ? 'text-red-800 dark:text-red-300' : 'text-gray-400'}`}>Tình trạng sức khỏe</h4>
+                      <span className={`text-[9px] font-bold uppercase ${isCritical ? 'text-red-600' : 'text-primary'}`}>
+                        {isCritical ? 'Cảnh báo hệ thống' : 'Ngày thứ 45'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex justify-between text-[11px] font-black">
+                          <span className={`${isCritical ? 'text-red-700 dark:text-red-200' : 'text-gray-500'} uppercase tracking-tight`}>Chỉ số sinh trưởng</span>
+                          <span className={isCritical ? 'text-red-600' : 'text-primary'}>{100 - (area.daysToHarvest * 2)}%</span>
+                        </div>
+                        <div className={`w-full h-1.5 rounded-full overflow-hidden ${isCritical ? 'bg-red-200 dark:bg-red-950' : 'bg-gray-200 dark:bg-gray-800'}`}>
+                          <div className={`h-full ${isCritical ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-primary shadow-glow'}`} style={{ width: `${100 - (area.daysToHarvest * 2)}%` }}></div>
+                        </div>
+                        <p className={`text-[9px] font-bold uppercase tracking-widest italic ${isCritical ? 'text-red-600/70 dark:text-red-400/60' : 'text-gray-400'}`}>
+                          {isCritical ? 'Cần can thiệp thú y ngay lập tức' : `Dự kiến thu hoạch sau ${area.daysToHarvest} ngày`}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Recent Tasks List */}
+                  <div>
+                    <div className="flex justify-between items-center mb-3 px-1">
+                      <h4 className={`text-[9px] font-black uppercase tracking-widest ${isCritical ? 'text-red-800 dark:text-red-300' : 'text-gray-400'}`}>Nhiệm vụ khẩn cấp</h4>
+                      <button onClick={(e) => { e.stopPropagation(); onNavigate('tasks'); }} className={`text-[9px] font-black uppercase hover:underline ${isCritical ? 'text-red-600' : 'text-primary'}`}>Xem tất cả</button>
+                    </div>
+                    <div className="space-y-2">
+                      {area.recentTasks.map(task => (
+                        <div key={task.id} className={`flex items-center justify-between p-3 rounded-xl border shadow-sm ${isCritical ? 'bg-white/50 dark:bg-black/30 border-red-100 dark:border-red-900/30' : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`size-7 rounded-lg flex items-center justify-center ${task.status === 'completed' ? 'bg-green-50 dark:bg-green-900/20 text-green-500' : (isCritical ? 'bg-red-100 text-red-600' : 'bg-orange-50 dark:bg-orange-900/20 text-orange-500')}`}>
+                              <span className="material-symbols-outlined !text-base">{task.status === 'completed' ? 'check_circle' : (isCritical ? 'emergency_home' : 'schedule')}</span>
+                            </div>
+                            <span className={`text-xs font-bold ${task.status === 'completed' ? 'text-gray-400 line-through' : (isCritical ? 'text-red-900 dark:text-red-100' : 'dark:text-white')}`}>{task.title}</span>
+                          </div>
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${isCritical ? 'text-red-600' : 'text-gray-400'}`}>{task.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bottom Actions */}
+                  <div className="flex gap-3 pt-2">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); onNavigate('area-details'); }}
+                      className={`flex-1 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all ${isCritical ? 'bg-red-600 text-white' : 'bg-slate-900 text-white dark:bg-white dark:text-black'}`}
+                    >
+                      <span className="material-symbols-outlined !text-base">{isCritical ? 'priority_high' : 'analytics'}</span>
+                      {isCritical ? 'Xử lý khẩn cấp' : 'Dữ liệu chi tiết'}
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); onNavigate('add-task'); }}
+                      className={`size-11 rounded-xl border flex items-center justify-center transition-colors active:scale-90 ${isCritical ? 'border-red-300 text-red-600 bg-red-100/50' : 'border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:text-primary'}`}
+                    >
+                      <span className="material-symbols-outlined">add_task</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Floating Action Button */}
