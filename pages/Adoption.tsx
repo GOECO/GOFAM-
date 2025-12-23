@@ -2,8 +2,6 @@
 import React, { useState } from 'react';
 import { Page } from '../types';
 
-interface Props { onBack: () => void; onNavigate: (page: Page) => void; }
-
 interface Phase {
   name: string;
   desc: string;
@@ -105,6 +103,12 @@ const OPPORTUNITIES: InvestmentItem[] = [
   }
 ];
 
+// Added missing Props interface to fix the error in Adoption component
+interface Props { 
+  onBack: () => void; 
+  onNavigate: (page: Page) => void; 
+}
+
 const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
   const [activeTab, setActiveTab] = useState('crop');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -194,57 +198,74 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
           </div>
         </div>
 
-        {/* Dynamic ROI Comparison Chart */}
+        {/* Dynamic ROI Comparison Bar Chart */}
         <section className="px-4 py-6">
           <div className="bg-white dark:bg-surface-dark rounded-[2.5rem] p-6 shadow-soft border border-gray-100 dark:border-gray-800">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="text-sm font-black text-text-main-light dark:text-white uppercase tracking-tight">So Sánh ROI Thực Tế</h3>
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Kế Hoạch (Tối Ưu) vs Thực Tế (Vụ Trước)</p>
+                <h3 className="text-sm font-black text-text-main-light dark:text-white uppercase tracking-tight">Biểu Đồ ROI Pro</h3>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">So sánh Kế hoạch vs Thực tế hàng quý</p>
               </div>
               <div className="flex items-center justify-center size-10 rounded-2xl bg-primary/10 text-primary">
-                <span className="material-symbols-outlined">bar_chart</span>
+                <span className="material-symbols-outlined">analytics</span>
               </div>
             </div>
 
-            <div className="space-y-6">
-              {OPPORTUNITIES.map((item) => (
-                <div key={item.id} className="space-y-2">
-                  <div className="flex justify-between items-end mb-1">
-                    <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase truncate max-w-[150px]">{item.name}</span>
-                    <div className="flex gap-3">
-                       <span className="text-[9px] font-bold text-gray-400 uppercase">Kế hoạch: <span className="text-gray-900 dark:text-white">{item.baseRoiNum}%</span></span>
-                       <span className="text-[9px] font-bold text-gray-400 uppercase">Thực tế: <span className="text-primary">{item.actualRoiNum}%</span></span>
+            {/* Vertical Bar Chart Container */}
+            <div className="flex items-end justify-between h-48 w-full gap-2 relative px-2">
+              {/* Vertical Grid Lines (Scale: 0 - 25%) */}
+              <div className="absolute inset-0 flex flex-col justify-between text-[8px] text-gray-100 dark:text-gray-800 pointer-events-none pb-0">
+                {[25, 20, 15, 10, 5, 0].map((v) => (
+                  <div key={v} className="border-b border-dashed border-current w-full h-0 flex items-center relative">
+                    <span className="absolute -left-2 text-gray-300 dark:text-gray-600">{v}%</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Grouped Bars */}
+              {OPPORTUNITIES.map((item, idx) => (
+                <div key={item.id} className="flex flex-col items-center flex-1 z-10 group cursor-pointer h-full justify-end">
+                  <div className="flex items-end gap-1 relative h-full">
+                    {/* Planned Bar */}
+                    <div 
+                      className="w-4 bg-gray-200 dark:bg-gray-800 rounded-t-lg transition-all duration-1000 ease-out origin-bottom group-hover:brightness-110"
+                      style={{ height: `${(item.baseRoiNum / 25) * 100}%` }}
+                    ></div>
+                    {/* Actual Bar */}
+                    <div 
+                      className="w-4 bg-primary shadow-glow rounded-t-lg transition-all duration-1000 ease-out delay-100 origin-bottom group-hover:scale-y-105"
+                      style={{ height: `${(item.actualRoiNum / 25) * 100}%` }}
+                    ></div>
+                    
+                    {/* Floating Tooltip */}
+                    <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] px-3 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 shadow-2xl border border-white/10 whitespace-nowrap">
+                      <p className="font-black text-primary mb-0.5">{item.name}</p>
+                      <p className="font-bold">Kế hoạch: <span className="text-gray-400">{item.baseRoiNum}%</span></p>
+                      <p className="font-bold">Thực tế: <span className="text-primary">{item.actualRoiNum}%</span></p>
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45 border-b border-r border-white/10"></div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    {/* Planned Bar */}
-                    <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden relative">
-                      <div 
-                        className="h-full bg-gray-400/30 transition-all duration-1000" 
-                        style={{ width: `${(item.baseRoiNum / 25) * 100}%` }}
-                      ></div>
-                    </div>
-                    {/* Actual Bar */}
-                    <div className="h-2.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden relative">
-                      <div 
-                        className="h-full bg-primary shadow-glow transition-all duration-1000" 
-                        style={{ width: `${(item.actualRoiNum / 25) * 100}%` }}
-                      ></div>
-                    </div>
+                  
+                  {/* Category Icon instead of text to save space */}
+                  <div className="mt-3 flex flex-col items-center">
+                    <span className="material-symbols-outlined !text-[16px] text-gray-400 group-hover:text-primary transition-colors">
+                      {item.type === 'crop' ? 'potted_plant' : 'pets'}
+                    </span>
+                    <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter mt-0.5 max-w-[50px] truncate text-center">{item.code}</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 flex justify-center gap-6 pt-4 border-t border-gray-50 dark:border-gray-800/50">
+            {/* Legend */}
+            <div className="mt-8 flex justify-center gap-6 pt-4 border-t border-gray-50 dark:border-gray-800/50">
               <div className="flex items-center gap-2">
-                <div className="size-2 rounded-full bg-gray-400/30"></div>
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Kế Hoạch</span>
+                <div className="size-2.5 rounded-full bg-gray-200 dark:bg-gray-800"></div>
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Kế Hoạch</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="size-2 rounded-full bg-primary shadow-glow"></div>
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Thực Tế</span>
+                <div className="size-2.5 rounded-full bg-primary shadow-glow"></div>
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Thực Tế</span>
               </div>
             </div>
           </div>
