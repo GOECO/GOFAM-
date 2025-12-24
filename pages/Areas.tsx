@@ -155,7 +155,7 @@ const Areas: React.FC<Props> = ({ onBack, onNavigate }) => {
     <div className="min-h-screen bg-background-light dark:bg-background-dark pb-32 font-display">
       <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
         <button onClick={onBack} className="size-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center transition-colors">
-          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="material-symbols-outlined font-bold">arrow_back</span>
         </button>
         <div className="text-center flex-1">
           <h1 className="text-xl font-bold dark:text-white">Khu vực sản xuất</h1>
@@ -193,9 +193,9 @@ const Areas: React.FC<Props> = ({ onBack, onNavigate }) => {
                 </div>
                 <button 
                   onClick={(e) => handleNativeShare(area, e)}
-                  className="size-8 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all hover:bg-red-700"
+                  className="size-10 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all hover:bg-red-700 ring-4 ring-red-100 dark:ring-red-900/30"
                 >
-                  <span className="material-symbols-outlined !text-base font-bold">share</span>
+                  <span className="material-symbols-outlined !text-lg font-bold">share</span>
                 </button>
               </div>
             )}
@@ -262,7 +262,7 @@ const Areas: React.FC<Props> = ({ onBack, onNavigate }) => {
                       <div key={key} className="bg-gray-50 dark:bg-black/20 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-3">
                         <div className="size-8 rounded-xl bg-white dark:bg-surface-dark flex items-center justify-center border border-gray-100 dark:border-gray-700 text-primary">
                           <span className="material-symbols-outlined !text-base">
-                            {key === 'temp' ? 'device_thermostat' : key === 'hum' ? 'humidity_mid' : key === 'ph' ? 'science' : key === 'soil' ? 'water_drop' : 'wb_sunny'}
+                            {key === 'temp' ? 'device_thermostat' : key === 'hum' ? 'humidity_mid' : key === 'ph' ? 'science' : key === 'soil' ? 'water_drop' : key === 'wb_sunny'}
                           </span>
                         </div>
                         <div>

@@ -1,5 +1,5 @@
 
-export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'forgot-password' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings' | 'area-details' | 'reports' | 'add-task' | 'adoption' | 'virtual-garden' | 'ai-labs' | 'ap-check';
+export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'forgot-password' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings' | 'area-details' | 'reports' | 'add-task' | 'adoption' | 'virtual-garden' | 'ai-labs' | 'ap-check' | 'attendance' | 'messages' | 'chat-detail' | 'virtual-farm' | 'cultivation-log' | 'harvest' | 'blockchain-scan' | 'missions' | 'store';
 
 export interface SensorData {
   temp: number;
@@ -35,4 +35,42 @@ export interface Task {
   priority: Priority;
   status: TaskStatus;
   type: 'irrigation' | 'inspection' | 'harvest' | 'other';
+}
+
+export interface Message {
+  id: string;
+  sender: string;
+  senderName: string;
+  senderAvatar?: string;
+  text: string;
+  time: string;
+  isMe: boolean;
+  type: 'text' | 'image' | 'file';
+  imageUri?: string;
+  fileName?: string;
+  fileSize?: string;
+  reactions?: { emoji: string; count: number }[];
+}
+
+export interface ChatThread {
+  id: string;
+  name: string;
+  avatar?: string;
+  lastMessage: string;
+  lastMessageSender: string;
+  time: string;
+  unreadCount: number;
+  isGroup: boolean;
+  isImportant?: boolean;
+  statusColor?: string; // 'red' | 'primary' | 'transparent'
+  isOnline?: boolean;
+}
+
+export interface GardenNotification {
+  id: string;
+  type: 'irrigation' | 'alert' | 'ai' | 'milestone';
+  title: string;
+  desc: string;
+  time: string;
+  isNew: boolean;
 }

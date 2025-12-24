@@ -22,8 +22,17 @@ import Reports from './pages/Reports';
 import AddTask from './pages/AddTask';
 import Adoption from './pages/Adoption';
 import VirtualGarden from './pages/VirtualGarden';
+import VirtualFarm from './pages/VirtualFarm';
 import AILabs from './pages/AILabs';
 import APCheck from './pages/APCheck';
+import Attendance from './pages/Attendance';
+import Messages from './pages/Messages';
+import ChatDetail from './pages/ChatDetail';
+import CultivationLog from './pages/CultivationLog';
+import Harvest from './pages/Harvest';
+import BlockchainScanner from './pages/BlockchainScanner';
+import Missions from './pages/Missions';
+import Store from './pages/Store';
 
 interface AppNotification {
   id: string;
@@ -38,6 +47,7 @@ interface AppNotification {
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('splash');
   const [diagnosisData, setDiagnosisData] = useState<any>(null);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   const triggerAlert = useCallback((type: 'temp' | 'soil') => {
@@ -91,6 +101,7 @@ const App: React.FC = () => {
       case 'forgot-password': return <ForgotPassword onBack={() => navigate('login')} onResetSuccess={() => navigate('login')} />;
       case 'dashboard': return <Dashboard onNavigate={navigate} />;
       case 'virtual-garden': return <VirtualGarden onBack={() => navigate('dashboard')} onNavigate={navigate} />;
+      case 'virtual-farm': return <VirtualFarm onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'ai-labs': return <AILabs onBack={() => navigate('dashboard')} />;
       case 'ap-check': return <APCheck onBack={() => navigate('dashboard')} />;
       case 'add-task': return <AddTask onBack={() => navigate('tasks')} />;
@@ -99,14 +110,22 @@ const App: React.FC = () => {
       case 'weather': return <Weather onBack={() => navigate('dashboard')} />;
       case 'tasks': return <Tasks onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'inventory': return <Inventory onBack={() => navigate('dashboard')} />;
+      case 'attendance': return <Attendance onBack={() => navigate('dashboard')} />;
+      case 'messages': return <Messages onBack={() => navigate('dashboard')} onSelectChat={(id) => { setSelectedChatId(id); navigate('chat-detail'); }} onNavigate={navigate} />;
+      case 'chat-detail': return <ChatDetail chatId={selectedChatId || '1'} onBack={() => navigate('messages')} />;
       case 'scan': return <AIScan onBack={() => navigate('dashboard')} onDiagnose={(data) => { setDiagnosisData(data); navigate('diagnosis'); }} />;
-      case 'diagnosis': return <Diagnosis data={diagnosisData} onBack={() => navigate('scan')} onDone={() => navigate('dashboard')} onFindNearby={() => navigate('nearby')} onNavigate={navigate} />;
+      case 'diagnosis': return <Diagnosis data={diagnosisData} onBack={() => navigate('scan')} onDone={() => navigate('dashboard')} onFindNearby={() => navigate('nearby')} onNavigate={navigate} onDiagnose={(data) => setDiagnosisData(data)} />;
       case 'marketplace': return <Marketplace onBack={() => navigate('dashboard')} onFindNearby={() => navigate('nearby')} />;
       case 'wallet': return <Wallet onBack={() => navigate('dashboard')} />;
       case 'areas': return <Areas onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'nearby': return <NearbySuppliers onBack={() => navigate('marketplace')} />;
       case 'settings': return <FarmSettings onBack={() => navigate('dashboard')} />;
       case 'adoption': return <Adoption onBack={() => navigate('dashboard')} onNavigate={navigate} />;
+      case 'cultivation-log': return <CultivationLog onBack={() => navigate('dashboard')} onNavigate={navigate} />;
+      case 'harvest': return <Harvest onBack={() => navigate('virtual-farm')} onNavigate={navigate} />;
+      case 'blockchain-scan': return <BlockchainScanner onBack={() => navigate('dashboard')} />;
+      case 'missions': return <Missions onBack={() => navigate('dashboard')} />;
+      case 'store': return <Store onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       default: return <Dashboard onNavigate={navigate} />;
     }
   };

@@ -113,19 +113,20 @@ const Dashboard: React.FC<Props> = ({ onNavigate }) => {
         content = (
           <div className="px-4 py-2">
             <div className="bg-white dark:bg-surface-dark rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
-              <div className="flex justify-between items-start">
+              <div className="grid grid-cols-3 gap-4">
                 {[
                   { label: 'Quét AI', icon: 'center_focus_weak', color: 'bg-green-50 text-green-600 border-green-100 dark:bg-green-900/20 dark:text-primary dark:border-green-800', page: 'scan' },
-                  { label: 'Tạo việc', icon: 'add_task', color: 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800', page: 'add-task' },
+                  { label: 'Blockchain', icon: 'qr_code_scanner', color: 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800', page: 'blockchain-scan' },
+                  { label: 'Nhiệm vụ', icon: 'task_alt', color: 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-primary dark:border-emerald-800', page: 'missions' },
+                  { label: 'Chấm công', icon: 'badge', color: 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800', page: 'attendance' },
                   { label: 'Đầu tư', icon: 'monitoring', color: 'bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800', page: 'adoption' },
-                  { label: 'Báo cáo', icon: 'analytics', color: 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-border-800', page: 'reports' },
                   { label: 'Kiểm tra AP', icon: 'radar', color: 'bg-gray-50 text-gray-600 border-gray-100 dark:bg-gray-800/50 dark:text-gray-400 dark:border-gray-700', page: 'ap-check' }
                 ].map((action, i) => (
-                  <button key={i} onClick={() => onNavigate(action.page as Page)} className="flex flex-col items-center gap-2 group w-1/5 transition-all active:scale-90">
-                    <div className={`size-11 rounded-full flex items-center justify-center border shadow-sm transition-transform ${action.color}`}>
-                      <span className="material-symbols-outlined text-xl">{action.icon}</span>
+                  <button key={i} onClick={() => onNavigate(action.page as Page)} className="flex flex-col items-center gap-2 group transition-all active:scale-90">
+                    <div className={`size-12 rounded-2xl flex items-center justify-center border shadow-sm transition-transform ${action.color}`}>
+                      <span className="material-symbols-outlined text-2xl">{action.icon}</span>
                     </div>
-                    <span className="text-[10px] font-bold text-center text-gray-500 dark:text-gray-400 leading-tight uppercase tracking-wider">{action.label}</span>
+                    <span className="text-[10px] font-black text-center text-gray-500 dark:text-gray-400 leading-tight uppercase tracking-wider">{action.label}</span>
                   </button>
                 ))}
               </div>
@@ -216,20 +217,20 @@ const Dashboard: React.FC<Props> = ({ onNavigate }) => {
           <span className="material-symbols-outlined material-symbols-filled !text-[28px]">grid_view</span>
           <span className="text-[9px] font-black uppercase tracking-widest">Tổng quan</span>
         </button>
-        <button onClick={() => onNavigate('virtual-garden')} className="flex flex-col items-center gap-1.5 text-slate-400 hover:text-primary transition-colors group">
+        <button onClick={() => onNavigate('virtual-farm')} className="flex flex-col items-center gap-1.5 text-slate-400 hover:text-primary transition-colors group">
           <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">potted_plant</span>
           <span className="text-[9px] font-black uppercase tracking-widest">Vườn ảo</span>
         </button>
         <div className="relative -top-6">
-          <button onClick={() => onNavigate('add-task')} className="size-15 rounded-full bg-primary flex items-center justify-center text-white shadow-xl shadow-green-200 active:scale-90 transition-transform ring-[6px] ring-white">
-            <span className="material-symbols-outlined text-3xl font-black">add</span>
+          <button onClick={() => onNavigate('store')} className="size-15 rounded-full bg-primary flex items-center justify-center text-black shadow-xl shadow-primary/40 active:scale-90 transition-transform ring-[6px] ring-white">
+            <span className="material-symbols-outlined text-3xl font-black">storefront</span>
           </button>
         </div>
-        <button onClick={() => onNavigate('reports')} className="flex flex-col items-center gap-1.5 text-slate-400 hover:text-primary transition-colors group">
-          <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">analytics</span>
-          <span className="text-[9px] font-black uppercase tracking-widest">Báo cáo</span>
+        <button onClick={() => onNavigate('messages')} className="flex flex-col items-center gap-1.5 text-slate-400 hover:text-primary transition-colors group">
+          <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">chat_bubble</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">Tin nhắn</span>
         </button>
-        <button onClick={() => onNavigate('settings')} className="flex flex-col items-center gap-1.5 text-slate-400 hover:text-primary transition-colors group">
+        <button onClick={() => onNavigate('settings')} className="flex flex-col items-center gap-1.5 text-slate-400 group">
           <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">person</span>
           <span className="text-[9px] font-black uppercase tracking-widest">Cá nhân</span>
         </button>
