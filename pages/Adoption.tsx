@@ -103,7 +103,6 @@ const OPPORTUNITIES: InvestmentItem[] = [
   }
 ];
 
-// Added missing Props interface to fix the error in Adoption component
 interface Props { 
   onBack: () => void; 
   onNavigate: (page: Page) => void; 
@@ -425,10 +424,12 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
                   {/* Details View */}
                   {isExpanded && (
                     <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-800 animate-[slideDown_0.3s_ease-out] space-y-6">
+                      
+                      {/* Project Duration & Timeline */}
                       <div className="space-y-3">
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                            <span className="material-symbols-outlined !text-sm">calendar_today</span>
-                           Tiến độ dự án
+                           Thời hạn dự án & Tiến độ
                         </h4>
                         <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-4">
                            <div className="flex justify-between items-center mb-4">
@@ -438,7 +439,7 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
                               </div>
                               <div className="flex flex-col items-center justify-center px-4 flex-1">
                                  <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full relative overflow-hidden">
-                                    <div className="absolute left-0 top-0 h-full bg-primary" style={{ width: '65%' }}></div>
+                                    <div className="absolute left-0 top-0 h-full bg-primary shadow-glow" style={{ width: '65%' }}></div>
                                  </div>
                                  <span className="text-[8px] font-black text-primary uppercase mt-2">Active</span>
                               </div>
@@ -447,11 +448,39 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
                                  <p className="text-xs font-black dark:text-white">{item.endDate}</p>
                               </div>
                            </div>
+                           <p className="text-[9px] text-gray-400 text-center italic">Tổng thời gian: {item.duration}</p>
                         </div>
                       </div>
 
+                      {/* Risk Assessment Breakdown */}
                       <div className="space-y-3">
-                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chỉ số thành công</h4>
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                           <span className="material-symbols-outlined !text-sm">security</span>
+                           Phân tích rủi ro chi tiết
+                        </h4>
+                        <div className="grid grid-cols-1 gap-2">
+                           {Object.entries(item.riskBreakdown).map(([key, val]) => (
+                             <div key={key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/40 rounded-xl border border-gray-100 dark:border-gray-800">
+                               <div className="flex items-center gap-2">
+                                 <span className="material-symbols-outlined !text-sm text-gray-400">
+                                   {key === 'weather' ? 'wb_cloudy' : key === 'disease' ? 'coronavirus' : 'trending_down'}
+                                 </span>
+                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest capitalize">
+                                   {key === 'weather' ? 'Thời tiết' : key === 'disease' ? 'Dịch bệnh' : 'Thị trường'}
+                                 </span>
+                               </div>
+                               <span className="text-[11px] font-black dark:text-white">{val}</span>
+                             </div>
+                           ))}
+                        </div>
+                      </div>
+
+                      {/* Success Metrics */}
+                      <div className="space-y-3">
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                           <span className="material-symbols-outlined !text-sm">analytics</span>
+                           Chỉ số thành công
+                        </h4>
                         <div className="grid grid-cols-2 gap-3">
                            {[
                              { label: 'Tỉ lệ thành công', val: `${item.metrics.successRate}%`, icon: 'verified', color: 'text-primary' },
@@ -484,9 +513,9 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
                     </button>
                     <button 
                       onClick={() => toggleExpand(item.id)}
-                      className={`flex-1 py-3.5 rounded-2xl border transition-all text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 ${isExpanded ? 'bg-slate-900 text-white dark:bg-white dark:text-black border-transparent' : 'border-gray-100 dark:border-gray-800 text-text-main-light dark:text-white hover:bg-gray-50'}`}
+                      className={`flex-1 py-3.5 rounded-2xl border transition-all text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 ${isExpanded ? 'bg-slate-900 text-white dark:bg-white dark:text-black border-transparent shadow-lg' : 'border-gray-100 dark:border-gray-800 text-text-main-light dark:text-white hover:bg-gray-50'}`}
                     >
-                      {isExpanded ? 'Đóng' : 'Chi tiết'}
+                      {isExpanded ? 'Đóng chi tiết' : 'Xem chi tiết'}
                       <span className={`material-symbols-outlined !text-base transition-transform ${isExpanded ? 'rotate-180' : ''}`}>expand_more</span>
                     </button>
                   </div>

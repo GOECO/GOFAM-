@@ -191,9 +191,18 @@ const Areas: React.FC<Props> = ({ onBack, onNavigate }) => {
           >
             {/* Title for critical status: 'Status: Urgent' or 'Cảnh báo khẩn cấp' */}
             {area.state === 'critical' && (
-              <div className="flex items-center gap-1.5 mb-3 text-red-600 dark:text-red-400 animate-pulse">
-                <span className="material-symbols-outlined !text-sm font-black">error</span>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">CẢNH BÁO KHẨN CẤP</span>
+              <div className="flex items-center justify-between mb-3 text-red-600 dark:text-red-400">
+                <div className="flex items-center gap-1.5 animate-pulse">
+                  <span className="material-symbols-outlined !text-sm font-black">error</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">CẢNH BÁO KHẨN CẤP</span>
+                </div>
+                {/* Immediate share button within the alert header as requested */}
+                <button 
+                  onClick={(e) => handleShare(area, e)}
+                  className="size-7 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform group-hover:bg-red-600"
+                >
+                  <span className="material-symbols-outlined !text-xs font-bold">share</span>
+                </button>
               </div>
             )}
 
@@ -217,12 +226,12 @@ const Areas: React.FC<Props> = ({ onBack, onNavigate }) => {
                     </h3>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {/* Share Button */}
+                    {/* Floating Share Button */}
                     <button 
                       onClick={(e) => handleShare(area, e)}
                       className={`size-8 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 absolute top-4 right-4 z-10 ${
                         area.state === 'critical' 
-                          ? 'bg-red-500 text-white shadow-lg shadow-red-500/40 opacity-100 scale-110' 
+                          ? 'hidden' // Already shown in the header for critical items
                           : 'bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800 text-gray-500 hover:text-primary hover:border-primary shadow-sm'
                       }`}
                     >

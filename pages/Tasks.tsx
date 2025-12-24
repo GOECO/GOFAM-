@@ -51,6 +51,17 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
       priority: 'Low', 
       status: 'Pending',
       type: 'harvest'
+    },
+    { 
+      id: '5', 
+      title: 'Tưới nước Vườn Ổi', 
+      description: 'Nhiệm vụ tưới nước định kỳ theo lịch trình Pro Farming cho khu vực vườn ổi.', 
+      dueDate: '2023-10-25', 
+      time: '08:00', 
+      area: 'Khu A - Vườn Ổi (300m²)', 
+      priority: 'Medium', 
+      status: 'Pending',
+      type: 'irrigation'
     }
   ]);
 
@@ -216,7 +227,7 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
 
         {/* Timeline View */}
         <div className="px-4 flex flex-col gap-0">
-          {filteredTasks.map((task, i) => {
+          {filteredTasks.length > 0 ? filteredTasks.map((task, i) => {
             const statusCfg = getStatusConfig(task.status);
             return (
               <div key={task.id} className="flex gap-4 group">
@@ -228,7 +239,7 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
 
                 <div 
                   onClick={() => setDetailTask(task)}
-                  className={`flex-1 relative mb-6 rounded-3xl p-4 shadow-sm border transition-all cursor-pointer active:scale-[0.98] ${task.status === 'Completed' ? 'bg-white/60 dark:bg-surface-dark/60 opacity-60' : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800 hover:shadow-md'}`}
+                  className={`flex-1 relative mb-6 rounded-3xl p-4 shadow-sm border transition-all cursor-pointer active:scale-[0.98] ${task.status === 'Completed' ? 'bg-white/60 dark:bg-surface-dark/60 opacity-60' : 'bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 hover:shadow-md'}`}
                 >
                   <div className={`absolute -right-1 -top-1 size-8 rounded-full flex items-center justify-center z-10 ${statusCfg.color} border-2 border-white dark:border-surface-dark`}>
                     <span className={`material-symbols-outlined !text-[18px] ${statusCfg.animate || ''}`}>{statusCfg.icon}</span>
@@ -261,7 +272,12 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
                 </div>
               </div>
             );
-          })}
+          }) : (
+            <div className="py-20 text-center opacity-30">
+              <span className="material-symbols-outlined !text-6xl mb-2">event_busy</span>
+              <p className="font-black text-xs uppercase tracking-widest">Không có nhiệm vụ</p>
+            </div>
+          )}
         </div>
       </div>
 
