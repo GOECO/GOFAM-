@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Page } from '../types';
 
 interface Props { onBack: () => void; onNavigate: (page: Page) => void; }
@@ -60,12 +60,22 @@ const INITIAL_INVENTORY: InventoryItem[] = [
 const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
   const [activeCategory, setActiveCategory] = useState<'All' | 'Supplies' | 'Produce' | 'NFT'>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const filteredItems = INITIAL_INVENTORY.filter(item => {
     const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const handleScan = () => {
+    setIsScannerOpen(true);
+    // Simulation: show scanner for a bit then "detect" something
+    setTimeout(() => {
+      setIsScannerOpen(false);
+      alert("Đã nhận dạng mã QR: Sản phẩm #GFM-1029. Thông tin đã được thêm vào hệ thống.");
+    }, 2500);
+  };
 
   return (
     <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-white transition-colors duration-300 pb-32">
@@ -97,16 +107,25 @@ const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
       </header>
 
       <main className="flex-1 px-4 py-6 space-y-6 overflow-y-auto no-scrollbar">
-        {/* Search Bar */}
-        <section className="relative group">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">search</span>
-          <input 
-            type="text" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 rounded-2xl pl-11 pr-4 text-sm font-bold outline-none focus:ring-1 focus:ring-primary dark:text-white transition-all shadow-sm" 
-            placeholder="Tìm kiếm trong kho..." 
-          />
+        {/* Search Bar with QR Scanner Trigger */}
+        <section className="relative group flex gap-3">
+          <div className="relative flex-1">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">search</span>
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-12 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 rounded-2xl pl-11 pr-4 text-sm font-bold outline-none focus:ring-1 focus:ring-primary dark:text-white transition-all shadow-sm" 
+              placeholder="Tìm kiếm trong kho..." 
+            />
+          </div>
+          <button 
+            onClick={handleScan}
+            className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-black shadow-glow active:scale-95 transition-transform"
+            title="Quét mã QR"
+          >
+            <span className="material-symbols-outlined font-black">qr_code_scanner</span>
+          </button>
         </section>
 
         {/* Category Chips */}
@@ -188,6 +207,47 @@ const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
         </section>
       </main>
 
+      {/* QR Scanner Fullscreen Overlay */}
+      {isScannerOpen && (
+        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out]">
+          {/* Header Controls */}
+          <div className="absolute top-0 left-0 w-full p-6 flex items-center justify-between z-[110]">
+            <button onClick={() => setIsScannerOpen(false)} className="size-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition-transform">
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <div className="flex flex-col items-center">
+              <h2 className="text-white font-black uppercase tracking-[0.2em] text-sm">Máy quét QR</h2>
+              <p className="text-[10px] text-primary font-bold uppercase mt-1">Hệ thống Blockchain</p>
+            </div>
+            <button className="size-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white">
+              <span className="material-symbols-outlined">flash_on</span>
+            </button>
+          </div>
+
+          {/* Scanner Viewport */}
+          <div className="relative w-80 h-80 border border-white/20 rounded-[3rem] overflow-hidden bg-white/5 backdrop-blur-[2px]">
+            {/* Corner Markers */}
+            <div className="absolute top-0 left-0 w-14 h-14 border-t-4 border-l-4 border-primary rounded-tl-3xl shadow-glow"></div>
+            <div className="absolute top-0 right-0 w-14 h-14 border-t-4 border-r-4 border-primary rounded-tr-3xl shadow-glow"></div>
+            <div className="absolute bottom-0 left-0 w-14 h-14 border-b-4 border-l-4 border-primary rounded-bl-3xl shadow-glow"></div>
+            <div className="absolute bottom-0 right-0 w-14 h-14 border-b-4 border-r-4 border-primary rounded-br-3xl shadow-glow"></div>
+            
+            {/* Scanning Line Animation */}
+            <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_20px_#13ec49] scanner-line z-20"></div>
+
+            {/* Fake Camera Feed Background */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-20">
+              <span className="material-symbols-outlined text-8xl text-white">qr_code_2</span>
+            </div>
+          </div>
+          
+          <div className="mt-12 px-8 text-center space-y-4">
+            <p className="text-white/80 text-xs font-black uppercase tracking-[0.3em] animate-pulse">Đang tìm mã QR vật tư...</p>
+            <p className="text-[10px] text-gray-500 font-medium italic max-w-[240px]">Căn chỉnh mã nằm gọn trong khung hình để nhận diện tự động</p>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-xl border-t border-slate-100 dark:border-gray-800 px-6 h-20 pb-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)] transition-colors">
         <button onClick={() => onNavigate('dashboard')} className="flex flex-col items-center gap-1.5 text-slate-400 group">
@@ -218,6 +278,7 @@ const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
         .shadow-glow { box-shadow: 0 0 15px rgba(19, 236, 73, 0.4); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       `}</style>
     </div>
   );

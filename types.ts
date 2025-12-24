@@ -1,5 +1,5 @@
 
-export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'forgot-password' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings' | 'area-details' | 'reports' | 'add-task' | 'adoption' | 'virtual-garden' | 'ai-labs' | 'ap-check' | 'attendance' | 'messages' | 'chat-detail' | 'virtual-farm' | 'cultivation-log' | 'harvest' | 'blockchain-scan' | 'missions' | 'store';
+export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'forgot-password' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings' | 'area-details' | 'reports' | 'add-task' | 'adoption' | 'virtual-garden' | 'ai-labs' | 'ap-check' | 'attendance' | 'messages' | 'chat-detail' | 'virtual-farm' | 'cultivation-log' | 'harvest' | 'blockchain-scan' | 'missions' | 'store' | 'ai-data' | 'notifications' | 'avatar-profile' | 'ai-chat';
 
 export interface SensorData {
   temp: number;
@@ -73,4 +73,29 @@ export interface GardenNotification {
   desc: string;
   time: string;
   isNew: boolean;
+}
+
+export type AreaState = 'active' | 'warning' | 'critical' | 'harvest';
+
+export interface Area {
+  id: string;
+  name: string;
+  typeIcon: string;
+  crop: string;
+  size: string;
+  count: string;
+  health: string;
+  healthColor: 'green' | 'yellow' | 'red';
+  state: AreaState;
+  img: string;
+  growthStage: string;
+  daysToHarvest: number;
+  totalCycleDays: number;
+  sensors: {
+    temp?: string;
+    hum?: string;
+    ph?: string;
+    soil?: string;
+    sun?: string;
+  };
 }

@@ -1,169 +1,248 @@
 
 import React, { useState } from 'react';
+import { Page } from '../types';
 
-interface Props { onBack: () => void; }
+interface Props { 
+  onBack: () => void; 
+  onNavigate?: (page: Page) => void;
+}
 
-const FarmSettings: React.FC<Props> = ({ onBack }) => {
-  const [farmName, setFarmName] = useState('Trang trại Đà Lạt 1');
-  const [location, setLocation] = useState('Lâm Đồng, Việt Nam');
-  const [timezone, setTimezone] = useState('Asia/Ho_Chi_Minh');
-  const [refreshRate, setRefreshRate] = useState(3);
-  const [isSaving, setIsSaving] = useState(false);
+const FarmSettings: React.FC<Props> = ({ onBack, onNavigate }) => {
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
 
-  const handleSave = () => {
-    setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
-      alert('Đã cập nhật cấu hình thành công!');
-    }, 1000);
+  const handleCopyWallet = () => {
+    navigator.clipboard.writeText("0x71C...9A2");
+    alert("Đã sao chép địa chỉ ví!");
   };
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark pb-32">
-      <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md p-6 border-b border-gray-100 dark:border-gray-800">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className="size-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center transition-colors">
-            <span className="material-symbols-outlined">arrow_back</span>
+    <div className="relative flex flex-col h-screen w-full bg-background-dark text-white font-display overflow-hidden selection:bg-primary selection:text-black">
+      {/* Top App Bar */}
+      <div className="flex items-center bg-background-dark/90 backdrop-blur-md p-4 pb-2 justify-between z-20 sticky top-0 border-b border-white/5">
+        <button 
+          onClick={onBack}
+          className="text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-white/10 transition-all active:scale-90"
+        >
+          <span className="material-symbols-outlined font-bold text-2xl">arrow_back</span>
+        </button>
+        <h2 className="text-white text-lg font-black leading-tight tracking-[0.15em] flex-1 text-center uppercase pr-10">Hồ sơ & Cài đặt</h2>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
+        {/* Profile Header */}
+        <div className="flex flex-col items-center pt-8 px-6 pb-8 animate-fadeIn">
+          {/* Avatar with Level Badge */}
+          <div className="relative mb-6">
+            <div 
+              className="rounded-full h-28 w-28 border-4 border-primary shadow-glow bg-center bg-cover"
+              style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDqcEQW_0vD1Z_YiwogWtvohRN4CDKtylqZj6TCslOCuCnQeFHuEuyUXsLKPvBFA_Na8iIN_o4d3En813-jMUbQ98-fym0LMEsND-n2t4iove_GoDY-AnEGQA7_SAu1EV192bkDfoMrRPx-se6qXfqzSPSbAJexGsYU2nj7qK9vJfmyVbvRNLFC4O29MyDQX6fooJl1FXAWUKUtBi-ncI8l1DcWSnmYlS31LyZ_NY3jKOQiGLft09liJUuUlAw_9CI8964OZ2CSA82O")' }}
+            ></div>
+            <div className="absolute -bottom-1 -right-1 bg-yellow-400 text-black text-[10px] font-black px-2.5 py-1 rounded-full border-2 border-background-dark shadow-xl">
+              LVL 12
+            </div>
+          </div>
+
+          {/* User Info */}
+          <div className="flex flex-col items-center justify-center gap-1.5 mb-6">
+            <div className="flex items-center gap-2">
+              <h1 className="text-white text-3xl font-black tracking-tight">Farmer_John</h1>
+              <span className="material-symbols-outlined text-blue-400 text-xl material-symbols-filled">verified</span>
+            </div>
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">john.doe@fintech.com</p>
+          </div>
+
+          {/* Wallet Address Pill */}
+          <div 
+            onClick={handleCopyWallet}
+            className="w-full max-w-[320px] bg-surface-dark rounded-2xl p-1.5 pr-4 flex items-center justify-between border border-white/5 mb-5 group cursor-pointer active:scale-95 transition-all"
+          >
+            <div className="flex items-center gap-3 bg-black/40 rounded-xl px-4 py-2 border border-white/5">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-glow"></div>
+              <p className="text-gray-400 text-sm font-mono tracking-wider">0x71C...9A2</p>
+            </div>
+            <span className="material-symbols-outlined text-gray-500 text-lg group-hover:text-primary transition-colors">content_copy</span>
+          </div>
+
+          {/* Action Button */}
+          <button className="flex items-center justify-center gap-2 rounded-2xl h-12 px-8 bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary text-[10px] font-black uppercase tracking-[0.2em] w-full max-w-[220px] transition-all active:scale-95">
+            Xem khóa công khai
+            <span className="material-symbols-outlined !text-base">qr_code</span>
           </button>
-          <div className="text-center flex-1 pr-10">
-             <h1 className="text-xl font-bold dark:text-white">Cấu hình Farm</h1>
-             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Quản trị hệ thống</p>
+        </div>
+
+        {/* Stats Summary */}
+        <div className="px-5 mb-8">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-surface-dark rounded-3xl p-5 border border-white/5 flex flex-col gap-2 shadow-lg">
+              <p className="text-gray-500 text-[9px] uppercase font-black tracking-[0.2em]">GOFAM TOKEN</p>
+              <div className="flex items-center gap-2">
+                <span className="text-primary text-xl font-black">1,240.50</span>
+                <span className="material-symbols-outlined text-primary text-base font-black">trending_up</span>
+              </div>
+            </div>
+            <div className="bg-surface-dark rounded-3xl p-5 border border-white/5 flex flex-col gap-2 shadow-lg">
+              <p className="text-gray-500 text-[9px] uppercase font-black tracking-[0.2em]">THU NHẬP (USDT)</p>
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-400 text-xl font-black">$482.20</span>
+                <span className="material-symbols-outlined text-yellow-400 text-base material-symbols-filled">payments</span>
+              </div>
+            </div>
           </div>
         </div>
-      </header>
 
-      <main className="p-6 space-y-8 animate-fadeIn">
-        {/* Farm Identity Section */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-             <span className="material-symbols-outlined text-primary">info</span>
-             <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Thông tin cơ bản</h3>
-          </div>
-          
-          <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Tên trang trại</label>
-              <input 
-                type="text" 
-                value={farmName}
-                onChange={(e) => setFarmName(e.target.value)}
-                className="w-full h-12 bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 rounded-xl px-4 text-sm font-medium focus:ring-1 focus:ring-primary outline-none dark:text-white"
-              />
-            </div>
+        <div className="h-px bg-white/5 w-full mb-8"></div>
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Vị trí địa lý</label>
-              <div className="relative">
-                <input 
-                  type="text" 
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full h-12 bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-10 text-sm font-medium focus:ring-1 focus:ring-primary outline-none dark:text-white"
-                />
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary text-sm">my_location</span>
+        {/* General Settings Section */}
+        <div className="px-5 mb-8">
+          <h3 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4 pl-1">Cài đặt chung</h3>
+          <div className="bg-surface-dark rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl">
+            {/* Language Item */}
+            <div className="flex items-center gap-4 p-5 hover:bg-white/5 transition-colors cursor-pointer group">
+              <div className="flex items-center justify-center rounded-2xl bg-primary/10 shrink-0 size-11 text-primary border border-primary/20 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined !text-2xl font-bold">translate</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-black uppercase tracking-tight">Ngôn ngữ</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Tiếng Việt</p>
+                <span className="material-symbols-outlined text-gray-600">chevron_right</span>
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Múi giờ</label>
-              <select 
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-                className="w-full h-12 bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 rounded-xl px-4 text-sm font-medium outline-none dark:text-white appearance-none cursor-pointer"
-              >
-                <option value="Asia/Ho_Chi_Minh">Việt Nam (GMT+7)</option>
-                <option value="Asia/Bangkok">Thái Lan (GMT+7)</option>
-                <option value="Asia/Singapore">Singapore (GMT+8)</option>
-              </select>
-            </div>
-          </div>
-        </section>
-
-        {/* IoT Preferences Section */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-             <span className="material-symbols-outlined text-primary">sensors</span>
-             <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Cấu hình IoT</h3>
-          </div>
-          
-          <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Tốc độ làm mới dữ liệu</label>
-                <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-bold">{refreshRate} giây</span>
+            <div className="h-px bg-white/5 mx-5"></div>
+            
+            {/* Dark Mode Item */}
+            <div className="flex items-center gap-4 p-5 group">
+              <div className="flex items-center justify-center rounded-2xl bg-blue-500/10 shrink-0 size-11 text-blue-400 border border-blue-500/20 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined !text-2xl font-bold">dark_mode</span>
               </div>
-              <input 
-                type="range" 
-                min="1" 
-                max="60" 
-                value={refreshRate}
-                onChange={(e) => setRefreshRate(parseInt(e.target.value))}
-                className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full appearance-none cursor-pointer accent-primary"
-              />
-              <div className="flex justify-between text-[9px] font-bold text-gray-400 uppercase">
-                <span>Thời gian thực (1s)</span>
-                <span>Tiết kiệm pin (60s)</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <div className="space-y-0.5">
-                <p className="text-sm font-bold dark:text-white">Chế độ Pro Live</p>
-                <p className="text-[10px] text-gray-500">Luôn hiển thị thông số trên thanh trạng thái</p>
+              <div className="flex-1">
+                <p className="text-white text-sm font-black uppercase tracking-tight">Giao diện tối</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" defaultChecked className="sr-only peer" />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none dark:bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                <input 
+                  type="checkbox" 
+                  checked={isDarkMode} 
+                  onChange={(e) => setIsDarkMode(e.target.checked)} 
+                  className="sr-only peer" 
+                />
+                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-inner"></div>
+              </label>
+            </div>
+            <div className="h-px bg-white/5 mx-5"></div>
+
+            {/* Notifications Item */}
+            <div className="flex items-center gap-4 p-5 group">
+              <div className="flex items-center justify-center rounded-2xl bg-yellow-400/10 shrink-0 size-11 text-yellow-400 border border-yellow-400/20 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined !text-2xl font-bold">notifications</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-black uppercase tracking-tight">Thông báo</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={isNotificationsEnabled} 
+                  onChange={(e) => setIsNotificationsEnabled(e.target.checked)} 
+                  className="sr-only peer" 
+                />
+                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-inner"></div>
               </label>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Security & Access */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-             <span className="material-symbols-outlined text-primary">security</span>
-             <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Bảo mật & Quyền hạn</h3>
-          </div>
-          
-          <div className="bg-white dark:bg-surface-dark rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm divide-y divide-gray-50 dark:divide-gray-800/50">
-            <button className="w-full p-4 flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-gray-400 group-hover:text-primary">group</span>
-                <span className="text-sm font-medium dark:text-white">Quản lý nhân sự (5 thành viên)</span>
+        {/* Security Section */}
+        <div className="px-5 mb-8">
+          <h3 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4 pl-1">Bảo mật & Riêng tư</h3>
+          <div className="bg-surface-dark rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl">
+            {/* 2FA Item */}
+            <div className="flex items-center gap-4 p-5 hover:bg-white/5 cursor-pointer group transition-colors">
+              <div className="flex items-center justify-center rounded-2xl bg-primary/10 shrink-0 size-11 text-primary border border-primary/20 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined !text-2xl font-bold">shield_lock</span>
               </div>
-              <span className="material-symbols-outlined text-gray-300">chevron_right</span>
-            </button>
-            <button className="w-full p-4 flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-gray-400 group-hover:text-primary">key</span>
-                <span className="text-sm font-medium dark:text-white">Mã PIN xác thực xuất kho</span>
+              <div className="flex-1">
+                <p className="text-white text-sm font-black uppercase tracking-tight">Xác thực 2 yếu tố (2FA)</p>
               </div>
-              <span className="material-symbols-outlined text-gray-300">chevron_right</span>
-            </button>
+              <div className="flex items-center gap-2">
+                <p className="text-primary text-[10px] font-black uppercase tracking-widest">Đã bật</p>
+                <span className="material-symbols-outlined text-gray-600">chevron_right</span>
+              </div>
+            </div>
+            <div className="h-px bg-white/5 mx-5"></div>
+            
+            {/* Password Item */}
+            <div className="flex items-center gap-4 p-5 hover:bg-white/5 cursor-pointer group transition-colors">
+              <div className="flex items-center justify-center rounded-2xl bg-white/5 shrink-0 size-11 text-white border border-white/10 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined !text-2xl font-bold">key</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-black uppercase tracking-tight">Đổi mật khẩu</p>
+              </div>
+              <span className="material-symbols-outlined text-gray-600">chevron_right</span>
+            </div>
           </div>
-        </section>
+        </div>
 
-        <div className="pt-4">
+        {/* Logout Section */}
+        <div className="px-5 mt-10 mb-12">
+          <button className="w-full flex items-center justify-center gap-3 py-5 rounded-[1.5rem] border border-red-500/20 text-red-500 font-black text-xs uppercase tracking-[0.2em] bg-red-500/5 hover:bg-red-500/10 transition-all active:scale-[0.98]">
+            <span className="material-symbols-outlined font-black">logout</span>
+            Đăng xuất
+          </button>
+          <p className="text-center text-gray-600 text-[10px] font-bold mt-6 uppercase tracking-widest opacity-50 italic">GOFAM PRO v1.0.2 (Build 240)</p>
+        </div>
+      </div>
+
+      {/* Floating Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#0c120f]/90 backdrop-blur-xl border-t border-white/5 px-6 py-2 pb-8 z-40 max-w-md mx-auto">
+        <div className="flex justify-between items-end">
           <button 
-            onClick={handleSave}
-            disabled={isSaving}
-            className="w-full h-16 bg-primary text-black rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-xl shadow-primary/20 active:scale-95 transition-all disabled:opacity-50"
+            onClick={() => onNavigate?.('dashboard')}
+            className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-white transition-all p-2 group"
           >
-            {isSaving ? (
-              <span className="material-symbols-outlined animate-spin">sync</span>
-            ) : (
-              <span className="material-symbols-outlined">save</span>
-            )}
-            Lưu thay đổi
+            <span className="material-symbols-outlined text-[26px] group-hover:scale-110 transition-transform">grid_view</span>
+            <span className="text-[9px] font-black uppercase tracking-widest">Tổng quan</span>
+          </button>
+          <button 
+            onClick={() => onNavigate?.('areas')}
+            className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-white transition-all p-2 group"
+          >
+            <span className="material-symbols-outlined text-[26px] group-hover:scale-110 transition-transform">agriculture</span>
+            <span className="text-[9px] font-black uppercase tracking-widest">Nông trại</span>
+          </button>
+          <div className="relative -top-8 group">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl group-hover:bg-primary/40 transition-all"></div>
+            <button 
+              onClick={() => onNavigate?.('wallet')}
+              className="relative flex items-center justify-center size-15 rounded-full bg-primary text-black shadow-glow border-[6px] border-[#0c120f] transition-transform hover:scale-110 active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[32px] font-black material-symbols-filled">account_balance_wallet</span>
+            </button>
+          </div>
+          <button 
+            onClick={() => onNavigate?.('marketplace')}
+            className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-white transition-all p-2 group"
+          >
+            <span className="material-symbols-outlined text-[26px] group-hover:scale-110 transition-transform">monitoring</span>
+            <span className="text-[9px] font-black uppercase tracking-widest">Thị trường</span>
+          </button>
+          <button className="flex flex-col items-center gap-1.5 text-primary p-2 transition-all">
+            <span className="material-symbols-outlined text-[28px] material-symbols-filled">person</span>
+            <span className="text-[9px] font-black uppercase tracking-widest">Hồ sơ</span>
           </button>
         </div>
-      </main>
+      </nav>
 
       <style>{`
+        .shadow-glow { box-shadow: 0 0 15px rgba(54, 226, 120, 0.4); }
+        .size-15 { width: 3.75rem; height: 3.75rem; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
       `}</style>
     </div>
   );

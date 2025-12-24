@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Page } from '../types';
 
 interface Props { 
@@ -37,10 +37,25 @@ const HARVEST_ITEMS = [
 
 const Harvest: React.FC<Props> = ({ onBack, onNavigate }) => {
   const [showReward, setShowReward] = useState(false);
+  const [avatar, setAvatar] = useState(localStorage.getItem('gofam_avatar') || "https://lh3.googleusercontent.com/aida-public/AB6AXuC0ZeJSFs0AXov5V2oozOkmo5-AU-bncDHvUfjF17s008wGK-CI2qbC--Q3LCGnW2TgGax3qL43xek2gypMTS3_ot6LoVLs0aJoD9z35F0TFpow3433Nmyep_C-x948z0x7uJ5Huhb10UdWWK-j_jSU9fIi5vKA55SgDEoRx-DxY0IiQ7XUl97drcosESiQ838aCMi0nD-pkW522bUcCfkDQjFfL1AVu1wdtncDcAwNvKeFY0Wlpg866MZd_xgWBbcNm4MRjrGb2jne");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleHarvestAll = () => {
     setShowReward(true);
     setTimeout(() => setShowReward(false), 2000);
+  };
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setAvatar(base64);
+        localStorage.setItem('gofam_avatar', base64);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -55,15 +70,33 @@ const Harvest: React.FC<Props> = ({ onBack, onNavigate }) => {
       <header className="relative z-50 flex flex-col shrink-0 bg-gradient-to-b from-background-dark to-transparent pt-4 pb-6 px-4">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <button onClick={onBack} className="relative group cursor-pointer active:scale-95 transition-transform">
-              <div className="bg-center bg-no-repeat bg-cover rounded-2xl size-11 ring-2 ring-primary/50 shadow-glow" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuC0ZeJSFs0AXov5V2oozOkmo5-AU-bncDHvUfjF17s008wGK-CI2qbC--Q3LCGnW2TgGax3qL43xek2gypMTS3_ot6LoVLs0aJoD9z35F0TFpow3433Nmyep_C-x948z0x7uJ5Huhb10UdWWK-j_jSU9fIi5vKA55SgDEoRx-DxY0IiQ7XUl97drcosESiQ838aCMi0nD-pkW522bUcCfkDQjFfL1AVu1wdtncDcAwNvKeFY0Wlpg866MZd_xgWBbcNm4MRjrGb2jne")'}}></div>
-              <div className="absolute -bottom-1 -right-1 bg-primary text-black text-[9px] font-black px-1.5 py-0.5 rounded-full border border-background-dark">LV.12</div>
+            <button onClick={onBack} className="size-10 rounded-full hover:bg-white/10 flex items-center justify-center mr-1">
+              <span className="material-symbols-outlined text-white font-bold">arrow_back</span>
             </button>
-            <div className="flex flex-col">
-              <h2 className="text-white text-base font-black leading-tight uppercase tracking-tight">Nông Trại GOFAM</h2>
+            <div className="relative">
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="size-10 rounded-2xl bg-cover bg-center shadow-glow group relative cursor-pointer active:scale-95 transition-all overflow-hidden border-2 border-primary/50" 
+                style={{backgroundImage: `url("${avatar}")`}}
+              >
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="material-symbols-outlined text-white text-xs">edit</span>
+                </div>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleAvatarUpload} 
+                />
+              </div>
+              <div className="absolute -bottom-1 -right-1 bg-primary text-black text-[8px] font-black px-1 py-0.5 rounded-full border border-background-dark z-10">LV.12</div>
+            </div>
+            <div className="flex flex-col ml-1">
+              <h2 className="text-white text-sm font-black leading-tight uppercase tracking-tight">Nông Trại GOFAM</h2>
               <div className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
-                <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Khu A - Ô 24</span>
+                <span className="material-symbols-outlined text-[12px] text-primary">location_on</span>
+                <span className="text-gray-400 text-[9px] font-black uppercase tracking-widest">Khu A - Ô 24</span>
               </div>
             </div>
           </div>

@@ -33,6 +33,10 @@ import Harvest from './pages/Harvest';
 import BlockchainScanner from './pages/BlockchainScanner';
 import Missions from './pages/Missions';
 import Store from './pages/Store';
+import AIFarmData from './pages/AIFarmData';
+import Notifications from './pages/Notifications';
+import AvatarProfile from './pages/AvatarProfile';
+import AIChat from './pages/AIChat';
 
 interface AppNotification {
   id: string;
@@ -109,23 +113,27 @@ const App: React.FC = () => {
       case 'reports': return <Reports onBack={() => navigate('dashboard')} />;
       case 'weather': return <Weather onBack={() => navigate('dashboard')} />;
       case 'tasks': return <Tasks onBack={() => navigate('dashboard')} onNavigate={navigate} />;
-      case 'inventory': return <Inventory onBack={() => navigate('dashboard')} />;
+      case 'inventory': return <Inventory onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'attendance': return <Attendance onBack={() => navigate('dashboard')} />;
       case 'messages': return <Messages onBack={() => navigate('dashboard')} onSelectChat={(id) => { setSelectedChatId(id); navigate('chat-detail'); }} onNavigate={navigate} />;
       case 'chat-detail': return <ChatDetail chatId={selectedChatId || '1'} onBack={() => navigate('messages')} />;
       case 'scan': return <AIScan onBack={() => navigate('dashboard')} onDiagnose={(data) => { setDiagnosisData(data); navigate('diagnosis'); }} />;
       case 'diagnosis': return <Diagnosis data={diagnosisData} onBack={() => navigate('scan')} onDone={() => navigate('dashboard')} onFindNearby={() => navigate('nearby')} onNavigate={navigate} onDiagnose={(data) => setDiagnosisData(data)} />;
       case 'marketplace': return <Marketplace onBack={() => navigate('dashboard')} onFindNearby={() => navigate('nearby')} />;
-      case 'wallet': return <Wallet onBack={() => navigate('dashboard')} />;
+      case 'wallet': return <Wallet onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'areas': return <Areas onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'nearby': return <NearbySuppliers onBack={() => navigate('marketplace')} />;
-      case 'settings': return <FarmSettings onBack={() => navigate('dashboard')} />;
+      case 'settings': return <FarmSettings onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'adoption': return <Adoption onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'cultivation-log': return <CultivationLog onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'harvest': return <Harvest onBack={() => navigate('virtual-farm')} onNavigate={navigate} />;
       case 'blockchain-scan': return <BlockchainScanner onBack={() => navigate('dashboard')} />;
-      case 'missions': return <Missions onBack={() => navigate('dashboard')} />;
+      case 'missions': return <Missions onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'store': return <Store onBack={() => navigate('dashboard')} onNavigate={navigate} />;
+      case 'ai-data': return <AIFarmData onBack={() => navigate('dashboard')} onNavigate={navigate} />;
+      case 'notifications': return <Notifications onBack={() => navigate('dashboard')} onNavigate={navigate} />;
+      case 'avatar-profile': return <AvatarProfile onBack={() => navigate('settings')} />;
+      case 'ai-chat': return <AIChat onBack={() => navigate('dashboard')} />;
       default: return <Dashboard onNavigate={navigate} />;
     }
   };

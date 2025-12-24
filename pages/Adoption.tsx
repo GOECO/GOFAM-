@@ -55,7 +55,7 @@ const OPPORTUNITIES: InvestmentItem[] = [
     riskBreakdown: { weather: 'Rất thấp (Kín)', disease: 'Thấp (Phòng ngừa)', market: 'Ổn định' },
     metrics: { successRate: 99.2, historicalRoi: '11.5%', demand: 'Cao', yieldQuality: 92 },
     roadmap: [
-      { name: 'Chuẩn bị', desc: 'Làm sạch máng', duration: '3 Ngày', status: 'completed' },
+      { name: 'Chu chuẩn bị', desc: 'Làm sạch máng', duration: '3 Ngày', status: 'completed' },
       { name: 'Phát triển', desc: 'Nuôi dưỡng cây', duration: '30 Ngày', status: 'current' },
       { name: 'Thu hoạch', desc: 'Bàn giao đối tác', duration: '5 Ngày', status: 'upcoming' }
     ],
@@ -114,33 +114,6 @@ const OPPORTUNITIES: InvestmentItem[] = [
       { name: 'Thu hoạch', desc: 'Phân loại', duration: '10 Ngày', status: 'upcoming' }
     ],
     profitCurve: [0, 2, 5, 10, 15, 22]
-  },
-  {
-    id: 'inv-4',
-    type: 'pets',
-    name: 'Bò Thịt Vỗ Béo',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCW_kR6YyBvV6S7z6v1V5W_6u_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W_v_T_W',
-    roi: '15%',
-    baseRoiNum: 15,
-    actualRoiNum: 15.2,
-    risk: 'TB',
-    riskLevel: 'Medium',
-    duration: '6 Tháng',
-    startDate: '01/11/2023',
-    endDate: '01/05/2024',
-    minCapital: '20.0 Tr',
-    profit: '~3.0 Tr',
-    code: 'BO-021',
-    cert: 'VietGAP',
-    description: 'Dự án vỗ béo bò thịt giống ngoại nhập với quy trình kiểm soát thức ăn và sức khỏe nghiêm ngặt bằng AI.',
-    riskBreakdown: { weather: 'Thấp', disease: 'Trung bình', market: 'Ổn định' },
-    metrics: { successRate: 96.5, historicalRoi: '14.8%', demand: 'Cao', yieldQuality: 90 },
-    roadmap: [
-      { name: 'Nhập giống', desc: 'Chọn lọc kỹ', duration: '1 Tuần', status: 'completed' },
-      { name: 'Vỗ béo', desc: 'Tăng trọng nhanh', duration: '5 Tháng', status: 'current' },
-      { name: 'Xuất chuồng', desc: 'Kiểm định', duration: '1 Tuần', status: 'upcoming' }
-    ],
-    profitCurve: [0, 2, 4, 7, 11, 15]
   }
 ];
 
@@ -148,6 +121,12 @@ interface Props { onBack: () => void; onNavigate: (page: Page) => void; }
 
 const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
   const [selectedItem, setSelectedItem] = useState<InvestmentItem | null>(null);
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+
+  const toggleExpand = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark pb-24 font-display">
@@ -174,53 +153,177 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
         </div>
 
         <div className="grid gap-4">
-          {OPPORTUNITIES.map((item) => (
-            <div 
-              key={item.id}
-              onClick={() => setSelectedItem(item)}
-              className="bg-white dark:bg-surface-dark rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm active:scale-[0.98] transition-all cursor-pointer group"
-            >
-              <div className="relative aspect-video">
-                <img src={item.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.name} />
-                <div className="absolute top-4 left-4 flex gap-2">
-                  <span className="px-3 py-1 bg-black/50 backdrop-blur rounded-full text-[10px] font-black text-white uppercase tracking-widest border border-white/20">
-                    {item.code}
-                  </span>
+          {OPPORTUNITIES.map((item) => {
+            const isExpanded = expandedCards[item.id];
+            const maxRoi = Math.max(item.baseRoiNum, item.actualRoiNum) + 5;
+
+            return (
+              <div 
+                key={item.id}
+                onClick={() => setSelectedItem(item)}
+                className="bg-white dark:bg-surface-dark rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm active:scale-[0.99] transition-all cursor-pointer group"
+              >
+                <div className="relative aspect-video">
+                  <img src={item.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.name} />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="px-3 py-1 bg-black/50 backdrop-blur rounded-full text-[10px] font-black text-white uppercase tracking-widest border border-white/20">
+                      {item.code}
+                    </span>
+                  </div>
+                  <div className="absolute bottom-4 right-4 bg-primary text-black px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">
+                    Lợi nhuận {item.roi}
+                  </div>
                 </div>
-                <div className="absolute bottom-4 right-4 bg-primary text-black px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">
-                  Lợi nhuận {item.roi}
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1">{item.name}</h3>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.cert} • {item.duration}</p>
+                    </div>
+                    <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${
+                      item.riskLevel === 'Low' ? 'bg-green-50 text-green-600 border-green-200' : 
+                      item.riskLevel === 'High' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-yellow-50 text-yellow-600 border-yellow-200'
+                    }`}>
+                      Rủi ro {item.risk}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2 mb-6">
+                    <div className="bg-gray-50 dark:bg-black/20 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
+                      <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1">Vốn min</p>
+                      <p className="text-sm font-black text-slate-900 dark:text-white">{item.minCapital}</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-black/20 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
+                      <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1">Lợi nhuận</p>
+                      <p className="text-sm font-black text-slate-900 dark:text-white">{item.profit}</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-black/20 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
+                      <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1">Thành công</p>
+                      <p className="text-sm font-black text-primary">{item.metrics.successRate}%</p>
+                    </div>
+                  </div>
+
+                  {/* ROI Analysis Bar Chart */}
+                  <div className="mb-6 space-y-3 px-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phân tích ROI Hiệu năng</h4>
+                      <div className="flex gap-4">
+                        <div className="flex items-center gap-1.5">
+                          <div className="size-1.5 rounded-full bg-slate-200 dark:bg-gray-700"></div>
+                          <span className="text-[8px] font-black text-gray-400 uppercase">Kế hoạch</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="size-1.5 rounded-full bg-primary"></div>
+                          <span className="text-[8px] font-black text-gray-400 uppercase">Thực tế</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-end gap-3 h-24 pt-2 border-b border-slate-50 dark:border-gray-800/50">
+                      <div className="flex-1 flex items-end justify-center gap-2 h-full group/bars">
+                        <div className="relative flex flex-col items-center w-6">
+                           <span className="text-[8px] font-black text-gray-400 mb-1">{item.baseRoiNum}%</span>
+                           <div className="w-full bg-slate-100 dark:bg-gray-800 rounded-t-lg transition-all duration-700" style={{ height: `${(item.baseRoiNum / maxRoi) * 100}%` }}></div>
+                        </div>
+                        <div className="relative flex flex-col items-center w-6">
+                           <span className="text-[8px] font-black text-primary mb-1">{item.actualRoiNum}%</span>
+                           <div className={`w-full rounded-t-lg transition-all duration-1000 shadow-glow ${item.actualRoiNum >= item.baseRoiNum ? 'bg-primary' : 'bg-orange-400'}`} style={{ height: `${(item.actualRoiNum / maxRoi) * 100}%` }}></div>
+                        </div>
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center h-full">
+                         <p className="text-[10px] font-black text-slate-800 dark:text-white uppercase leading-tight">
+                           {item.actualRoiNum >= item.baseRoiNum ? 'Vượt kỳ vọng' : 'Đang bám sát'}
+                         </p>
+                         <p className="text-[8px] text-gray-400 font-medium uppercase tracking-widest mt-1">Dựa trên dữ liệu vụ mùa thực</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expansion Content */}
+                  {isExpanded && (
+                    <div className="animate-[slideDown_0.3s_ease-out] space-y-5 mb-4 pt-5 border-t border-dashed border-gray-100 dark:border-gray-800">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <div className="size-1.5 rounded-full bg-primary animate-pulse"></div>
+                          <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Thông số vận hành Pro</h4>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Thời gian dự án</p>
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-blue-500 !text-lg">schedule</span>
+                              <p className="text-sm font-black dark:text-white">{item.duration}</p>
+                            </div>
+                          </div>
+                          <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Sản lượng dự kiến</p>
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-green-500 !text-lg">shopping_basket</span>
+                              <p className="text-sm font-black dark:text-white">{item.metrics.yieldQuality}% Đạt chuẩn</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 bg-slate-50 dark:bg-black/20 p-4 rounded-2xl border border-white/5">
+                          <div className="flex justify-between items-center text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                            <span>Phân tích rủi ro hệ thống</span>
+                            <span className={item.riskLevel === 'Low' ? 'text-green-500' : item.riskLevel === 'High' ? 'text-red-500' : 'text-yellow-500'}>{item.risk}</span>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="space-y-1.5">
+                              <div className="flex justify-between text-[8px] font-bold text-gray-500 uppercase tracking-widest">
+                                <span>Thời tiết & Môi trường</span>
+                                <span className="text-slate-400">{item.riskBreakdown.weather}</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-black/10 dark:bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-green-500 rounded-full" style={{ width: '90%' }}></div>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <div className="flex justify-between text-[8px] font-bold text-gray-500 uppercase tracking-widest">
+                                <span>Dịch bệnh & Kiểm soát AI</span>
+                                <span className="text-slate-400">{item.riskBreakdown.disease}</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-black/10 dark:bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-yellow-500 rounded-full" style={{ width: '65%' }}></div>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <div className="flex justify-between text-[8px] font-bold text-gray-500 uppercase tracking-widest">
+                                <span>Biến động thị trường</span>
+                                <span className="text-slate-400">{item.riskBreakdown.market}</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-black/10 dark:bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary rounded-full" style={{ width: '85%' }}></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10">
+                          <h5 className="text-[9px] font-black text-primary uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined !text-sm">analytics</span>
+                            Chỉ số thành công
+                          </h5>
+                          <p className="text-xs text-slate-600 dark:text-gray-300 font-medium leading-relaxed">
+                            Xác suất đạt ROI mục tiêu là <span className="font-black text-primary">{item.metrics.successRate}%</span> dựa trên dữ liệu lịch sử của 50 vụ mùa tương tự tại trang trại.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={(e) => toggleExpand(item.id, e)}
+                    className="w-full py-3.5 rounded-2xl bg-slate-900 dark:bg-white/5 text-white dark:text-gray-300 text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 active:scale-95 transition-all border border-transparent hover:border-primary/20 shadow-lg"
+                  >
+                    <span className="material-symbols-outlined !text-xl">{isExpanded ? 'expand_less' : 'finance_mode'}</span>
+                    {isExpanded ? 'Thu gọn thông tin' : 'Xem chi tiết đánh giá'}
+                  </button>
                 </div>
               </div>
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1">{item.name}</h3>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.cert} • {item.duration}</p>
-                  </div>
-                  <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${
-                    item.riskLevel === 'Low' ? 'bg-green-50 text-green-600 border-green-200' : 
-                    item.riskLevel === 'High' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-yellow-50 text-yellow-600 border-yellow-200'
-                  }`}>
-                    Rủi ro {item.risk}
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-gray-50 dark:bg-black/20 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
-                    <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1">Vốn min</p>
-                    <p className="text-sm font-black text-slate-900 dark:text-white">{item.minCapital}</p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-black/20 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
-                    <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1">Thời gian</p>
-                    <p className="text-sm font-black text-slate-900 dark:text-white">{item.duration}</p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-black/20 p-3 rounded-2xl border border-gray-100 dark:border-gray-800 text-center">
-                    <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-1">Thành công</p>
-                    <p className="text-sm font-black text-primary">{item.metrics.successRate}%</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -304,6 +407,7 @@ const Adoption: React.FC<Props> = ({ onBack, onNavigate }) => {
 
       <style>{`
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .shadow-glow { box-shadow: 0 0 15px rgba(19, 236, 73, 0.4); }

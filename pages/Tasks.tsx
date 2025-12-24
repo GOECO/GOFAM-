@@ -73,7 +73,9 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
   const filteredTasks = useMemo(() => {
     let result = tasks.filter(t => t.dueDate === selectedDate);
     if (filter === 'Chưa làm') result = result.filter(t => t.status !== 'Completed');
-    if (filter === 'Ưu tiên cao') result = result.filter(t => t.priority === 'High');
+    if (filter === 'Ưu tiên: Cao') result = result.filter(t => t.priority === 'High');
+    if (filter === 'Ưu tiên: TB') result = result.filter(t => t.priority === 'Medium');
+    if (filter === 'Ưu tiên: Thấp') result = result.filter(t => t.priority === 'Low');
     return result;
   }, [tasks, selectedDate, filter]);
 
@@ -186,7 +188,7 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
               const isSelected = selectedDate === dateStr;
               return (
                 <button 
-                  key={d}
+                  key={d} 
                   onClick={() => setSelectedDate(dateStr)}
                   className={`flex flex-col items-center justify-center h-11 rounded-xl transition-all relative ${isSelected ? 'bg-primary text-black font-black shadow-glow' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
                 >
@@ -213,11 +215,11 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
           </div>
 
           <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-            {['Tất cả', 'Chưa làm', 'Ưu tiên cao', 'Của tôi'].map((f) => (
+            {['Tất cả', 'Chưa làm', 'Ưu tiên: Cao', 'Ưu tiên: TB', 'Ưu tiên: Thấp', 'Của tôi'].map((f) => (
               <button 
                 key={f} 
                 onClick={() => setFilter(f)}
-                className={`shrink-0 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-text-main-light text-white dark:bg-white dark:text-black shadow-lg' : 'bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 text-gray-500'}`}
+                className={`shrink-0 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === f ? 'bg-text-main-light text-white dark:bg-white dark:text-black shadow-lg' : 'bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 text-gray-500'}`}
               >
                 {f}
               </button>
