@@ -105,6 +105,12 @@ const CultivationLog: React.FC<Props> = ({ onBack, onNavigate }) => {
     }
   };
 
+  const handleShareLog = (entry: LogEntry, e: React.MouseEvent) => {
+    e.stopPropagation();
+    alert(`Đã chuẩn bị nhật ký "${entry.title}" để chia sẻ với đồng đội.`);
+    onNavigate('messages');
+  };
+
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-white transition-colors duration-200 pb-24">
       {/* Header */}
@@ -122,7 +128,7 @@ const CultivationLog: React.FC<Props> = ({ onBack, onNavigate }) => {
             </button>
             <button className="flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 relative">
               <span className="material-symbols-outlined">filter_list</span>
-              <span className="absolute top-2 right-2 size-2 bg-primary rounded-full border border-white dark:border-background-dark"></span>
+              <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-background-dark"></span>
             </button>
           </div>
         </div>
@@ -188,7 +194,15 @@ const CultivationLog: React.FC<Props> = ({ onBack, onNavigate }) => {
                     >
                       <div className="flex justify-between items-start">
                         <div className="min-w-0 flex-1">
-                          <h4 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{entry.title}</h4>
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight truncate pr-4">{entry.title}</h4>
+                            <button 
+                              onClick={(e) => handleShareLog(entry, e)}
+                              className="size-8 shrink-0 rounded-full bg-slate-100 dark:bg-gray-800 text-gray-400 hover:text-primary transition-all flex items-center justify-center"
+                            >
+                              <span className="material-symbols-outlined !text-base">share</span>
+                            </button>
+                          </div>
                           <div className="flex items-center gap-2 mt-1.5">
                             <span className="inline-flex items-center rounded-lg bg-slate-100 dark:bg-gray-800 px-2.5 py-1 text-[9px] font-black text-slate-500 dark:text-gray-400 uppercase tracking-widest">
                                 {entry.area}
@@ -196,9 +210,6 @@ const CultivationLog: React.FC<Props> = ({ onBack, onNavigate }) => {
                             {entry.isAutomation && <span className="text-[9px] font-bold text-primary uppercase tracking-[0.2em]">• Tự động hóa</span>}
                           </div>
                         </div>
-                        <button className={`text-gray-300 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-primary' : ''}`}>
-                          <span className="material-symbols-outlined !text-2xl">keyboard_arrow_down</span>
-                        </button>
                       </div>
 
                       {/* Collapsed Preview */}

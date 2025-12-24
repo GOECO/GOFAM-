@@ -96,8 +96,24 @@ const FarmSettings: React.FC<Props> = ({ onBack, onNavigate }) => {
 
         {/* General Settings Section */}
         <div className="px-5 mb-8">
-          <h3 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4 pl-1">Cài đặt chung</h3>
+          <h3 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4 pl-1">Cấu hình hệ thống</h3>
           <div className="bg-surface-dark rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl">
+            {/* AI Settings - NEW ITEM */}
+            <div 
+              onClick={() => onNavigate?.('ai-settings')}
+              className="flex items-center gap-4 p-5 hover:bg-white/5 transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center justify-center rounded-2xl bg-primary/10 shrink-0 size-11 text-primary border border-primary/20 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined !text-2xl font-bold">psychology_alt</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-black uppercase tracking-tight">Cài đặt AI Chi tiết</p>
+                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Độ nhạy & Ngưỡng IoT</p>
+              </div>
+              <span className="material-symbols-outlined text-gray-600">chevron_right</span>
+            </div>
+            <div className="h-px bg-white/5 mx-5"></div>
+            
             {/* Language Item */}
             <div className="flex items-center gap-4 p-5 hover:bg-white/5 transition-colors cursor-pointer group">
               <div className="flex items-center justify-center rounded-2xl bg-primary/10 shrink-0 size-11 text-primary border border-primary/20 group-hover:scale-105 transition-transform">

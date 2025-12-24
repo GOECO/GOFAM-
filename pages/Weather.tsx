@@ -1,10 +1,65 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 interface Props { onBack: () => void; }
 
+interface HourlyData {
+  time: string;
+  temp: number;
+  rain: number; // percentage 0-100
+  icon: string;
+}
+
+const HOURLY_FORECAST: HourlyData[] = [
+  { time: 'Bây giờ', temp: 28, rain: 0, icon: 'wb_sunny' },
+  { time: '14:00', temp: 29, rain: 5, icon: 'wb_sunny' },
+  { time: '15:00', temp: 28, rain: 15, icon: 'partly_cloudy_day' },
+  { time: '16:00', temp: 27, rain: 45, icon: 'rainy' },
+  { time: '17:00', temp: 26, rain: 65, icon: 'thunderstorm' },
+  { time: '18:00', temp: 25, rain: 40, icon: 'rainy' },
+  { time: '19:00', temp: 24, rain: 20, icon: 'cloud' },
+  { time: '20:00', temp: 23, rain: 10, icon: 'cloud' },
+  { time: '21:00', temp: 22, rain: 5, icon: 'cloud' },
+  { time: '22:00', temp: 22, rain: 0, icon: 'cloud' },
+  { time: '23:00', temp: 21, rain: 0, icon: 'cloud' },
+  { time: '00:00', temp: 21, rain: 0, icon: 'cloud' },
+  { time: '01:00', temp: 20, rain: 0, icon: 'cloud' },
+  { time: '02:00', temp: 20, rain: 0, icon: 'cloud' },
+  { time: '03:00', temp: 19, rain: 10, icon: 'cloud' },
+  { time: '04:00', temp: 19, rain: 15, icon: 'cloud' },
+  { time: '05:00', temp: 20, rain: 10, icon: 'wb_twilight' },
+  { time: '06:00', temp: 22, rain: 5, icon: 'wb_sunny' },
+  { time: '07:00', temp: 24, rain: 0, icon: 'wb_sunny' },
+  { time: '08:00', temp: 26, rain: 0, icon: 'wb_sunny' },
+];
+
 const Weather: React.FC<Props> = ({ onBack }) => {
   const [activeModel, setActiveModel] = useState('Tổng hợp AI');
+
+  const chartWidth = HOURLY_FORECAST.length * 60;
+  const chartHeight = 120;
+  const maxTemp = 35;
+  const minTemp = 15;
+
+  const tempPoints = useMemo(() => {
+    return HOURLY_FORECAST.map((d, i) => {
+      const x = i * 60 + 30;
+      const y = chartHeight - ((d.temp - minTemp) / (maxTemp - minTemp)) * chartHeight;
+      return { x, y, temp: d.temp };
+    });
+  }, []);
+
+  const linePath = useMemo(() => {
+    if (tempPoints.length === 0) return "";
+    let path = `M ${tempPoints[0].x} ${tempPoints[0].y}`;
+    for (let i = 1; i < tempPoints.length; i++) {
+      const p0 = tempPoints[i - 1];
+      const p1 = tempPoints[i];
+      const cp1x = p0.x + (p1.x - p0.x) / 2;
+      path += ` C ${cp1x} ${p0.y}, ${cp1x} ${p1.y}, ${p1.x} ${p1.y}`;
+    }
+    return path;
+  }, [tempPoints]);
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display min-h-screen flex flex-col">
@@ -34,7 +89,7 @@ const Weather: React.FC<Props> = ({ onBack }) => {
             </div>
             <div className="text-left">
               <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Khu vực canh tác</p>
-              <p className="text-text-main-light dark:text-white text-sm font-black leading-tight">Trang trại Cà phê Đắk Lắk</p>
+              <p className="text-text-main-light dark:text-white text-sm font-black leading-tight">Trang trại Ba Vì • Hà Nội</p>
             </div>
           </div>
           <span className="material-symbols-outlined text-gray-400">expand_more</span>
@@ -107,42 +162,91 @@ const Weather: React.FC<Props> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* Hourly Forecast */}
+        {/* Integrated 24h Hourly Chart */}
         <div className="mb-8">
           <div className="px-6 pb-4 flex justify-between items-end">
-            <h3 className="text-text-main-light dark:text-white text-lg font-black tracking-tight uppercase">Chi tiết 24h tới</h3>
+            <div className="flex flex-col">
+               <h3 className="text-text-main-light dark:text-white text-lg font-black tracking-tight uppercase">Chi tiết 24h tới</h3>
+               <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Nhiệt độ & Lượng mưa AI</p>
+            </div>
             <div className="flex gap-4 text-[9px] font-black uppercase tracking-widest">
-              <span className="flex items-center gap-1.5 text-gray-400"><span className="w-2.5 h-2.5 rounded-sm bg-blue-500"></span> Mưa</span>
-              <span className="flex items-center gap-1.5 text-gray-400"><span className="w-2.5 h-2.5 rounded-sm bg-yellow-400"></span> Nắng</span>
+              <span className="flex items-center gap-1.5 text-blue-500"><span className="w-2.5 h-1.5 rounded-sm bg-blue-500"></span> Mưa</span>
+              <span className="flex items-center gap-1.5 text-primary"><span className="w-2.5 h-0.5 rounded-sm bg-primary"></span> Nhiệt</span>
             </div>
           </div>
-          <div className="flex gap-3 overflow-x-auto px-4 pb-4 no-scrollbar">
-            <div className="flex flex-col items-center justify-between gap-1 rounded-2xl bg-surface-dark dark:bg-primary text-white dark:text-black min-w-[75px] h-36 py-4 shadow-xl border border-transparent relative overflow-hidden shrink-0">
-              <p className="text-[10px] font-black uppercase z-10">Bây giờ</p>
-              <span className="material-symbols-outlined text-2xl z-10 material-symbols-filled">wb_sunny</span>
-              <p className="text-lg font-black z-10">28°</p>
-              <div className="w-full bg-white/10 dark:bg-black/10 h-10 absolute bottom-0 flex items-end justify-center">
-                <div className="w-full bg-yellow-400/50 h-[80%]"></div>
-              </div>
-              <p className="text-[9px] z-10 font-black mt-1 uppercase">UV 8</p>
-            </div>
-            {[
-              { time: '14:00', icon: 'partly_cloudy_day', temp: '29°', chance: '10%', fill: '10%', color: 'text-warning' },
-              { time: '15:00', icon: 'cloud', temp: '28°', chance: '30%', fill: '30%', color: 'text-gray-400' },
-              { time: '16:00', icon: 'rainy', temp: '27°', chance: '2.1mm', fill: '60%', color: 'text-blue-500', isRain: true },
-              { time: '17:00', icon: 'thunderstorm', temp: '26°', chance: '5.4mm', fill: '85%', color: 'text-blue-600', isRain: true },
-              { time: '18:00', icon: 'cloud', temp: '25°', chance: '20%', fill: '20%', color: 'text-gray-400' },
-            ].map((h, i) => (
-              <div key={i} className={`flex flex-col items-center justify-between gap-1 rounded-2xl bg-white dark:bg-surface-dark border ${h.isRain ? 'border-blue-200 dark:border-blue-900/50' : 'border-gray-100 dark:border-white/10'} min-w-[75px] h-36 py-4 shadow-sm shrink-0 relative overflow-hidden`}>
-                <p className="text-[10px] text-gray-400 dark:text-gray-500 z-10 font-black uppercase">{h.time}</p>
-                <span className={`material-symbols-outlined text-2xl ${h.color} z-10`}>{h.icon}</span>
-                <p className="text-lg font-black text-text-main-light dark:text-white z-10">{h.temp}</p>
-                <div className={`w-full h-10 absolute bottom-0 flex items-end justify-center border-t border-gray-100 dark:border-white/5 ${h.isRain ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
-                  <div className={`w-full ${h.isRain ? 'bg-blue-500' : 'bg-blue-500/20'} transition-all`} style={{ height: h.fill }}></div>
+          
+          <div className="px-4">
+            <div className="bg-white dark:bg-surface-dark border border-gray-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-sm pt-8 pb-4">
+              <div className="overflow-x-auto no-scrollbar px-4">
+                <div style={{ width: chartWidth }} className="relative h-[200px]">
+                  {/* Grid Lines */}
+                  <div className="absolute inset-0 flex flex-col justify-between pointer-events-none border-b border-gray-50 dark:border-white/5">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="w-full border-t border-gray-50 dark:border-white/10 opacity-50"></div>
+                    ))}
+                  </div>
+
+                  {/* SVG Chart */}
+                  <svg className="absolute inset-0 w-full h-full" style={{ height: chartHeight }}>
+                    {/* Precipitation Bars */}
+                    {HOURLY_FORECAST.map((d, i) => (
+                      <rect 
+                        key={i}
+                        x={i * 60 + 15}
+                        y={chartHeight - (d.rain / 100) * chartHeight}
+                        width="30"
+                        height={(d.rain / 100) * chartHeight}
+                        fill="currentColor"
+                        className="text-blue-500/20 dark:text-blue-500/30"
+                        rx="4"
+                      />
+                    ))}
+                    
+                    {/* Temperature Line */}
+                    <path 
+                      d={linePath} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      className="text-primary" 
+                      strokeWidth="3" 
+                      strokeLinecap="round"
+                    />
+
+                    {/* Nodes and Values */}
+                    {tempPoints.map((p, i) => (
+                      <g key={i}>
+                        <circle cx={p.x} cy={p.y} r="4" fill="white" className="dark:fill-surface-dark" stroke="#13ec49" strokeWidth="2" />
+                        <text 
+                          x={p.x} 
+                          y={p.y - 12} 
+                          textAnchor="middle" 
+                          className="text-[10px] font-black fill-text-main-light dark:fill-white"
+                        >
+                          {p.temp}°
+                        </text>
+                      </g>
+                    ))}
+                  </svg>
+
+                  {/* X-Axis: Time and Icons */}
+                  <div className="absolute bottom-0 w-full flex items-end">
+                    {HOURLY_FORECAST.map((d, i) => (
+                      <div key={i} className="flex flex-col items-center justify-center w-[60px] pb-2">
+                        <span className={`material-symbols-outlined !text-xl mb-2 ${d.rain > 30 ? 'text-blue-500' : 'text-yellow-500'}`}>
+                          {d.icon}
+                        </span>
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">
+                          {d.time}
+                        </span>
+                        {d.rain > 0 && (
+                          <span className="text-[8px] font-black text-blue-500 mt-0.5">{d.rain}%</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p className={`text-[9px] z-10 font-black uppercase ${h.isRain ? 'text-blue-600 dark:text-blue-300' : 'text-gray-400'}`}>{h.chance}</p>
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
@@ -304,6 +408,9 @@ const Weather: React.FC<Props> = ({ onBack }) => {
 
       <style>{`
         .shadow-glow { box-shadow: 0 0 15px rgba(19, 236, 73, 0.4); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .drop-shadow-glow { filter: drop-shadow(0 0 8px rgba(19, 236, 73, 0.5)); }
       `}</style>
     </div>
   );

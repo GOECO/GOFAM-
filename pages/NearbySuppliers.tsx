@@ -74,9 +74,10 @@ const NearbySuppliers: React.FC<Props> = ({ onBack }) => {
         console.warn("Geolocation failed, using default search", err);
       }
 
+      // Use gemini-2.5-flash-latest as it supports Maps grounding and follows guidelines
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `${activeQuery}. Hãy liệt kê các địa điểm uy tín và cung cấp link bản đồ.`,
+        model: "gemini-2.5-flash-lite-latest",
+        contents: [{ parts: [{ text: `${activeQuery}. Hãy liệt kê các địa điểm uy tín và cung cấp link bản đồ.` }] }],
         config: {
           tools: [{ googleMaps: {} }],
           toolConfig: latLng ? {

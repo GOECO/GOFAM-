@@ -37,6 +37,7 @@ import AIFarmData from './pages/AIFarmData';
 import Notifications from './pages/Notifications';
 import AvatarProfile from './pages/AvatarProfile';
 import AIChat from './pages/AIChat';
+import AISettings from './pages/AISettings';
 
 interface AppNotification {
   id: string;
@@ -124,7 +125,6 @@ const App: React.FC = () => {
       case 'areas': return <Areas onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'nearby': return <NearbySuppliers onBack={() => navigate('marketplace')} />;
       case 'settings': return <FarmSettings onBack={() => navigate('dashboard')} onNavigate={navigate} />;
-      case 'adoption': return <Adoption onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'cultivation-log': return <CultivationLog onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'harvest': return <Harvest onBack={() => navigate('virtual-farm')} onNavigate={navigate} />;
       case 'blockchain-scan': return <BlockchainScanner onBack={() => navigate('dashboard')} />;
@@ -134,12 +134,15 @@ const App: React.FC = () => {
       case 'notifications': return <Notifications onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'avatar-profile': return <AvatarProfile onBack={() => navigate('settings')} />;
       case 'ai-chat': return <AIChat onBack={() => navigate('dashboard')} />;
+      case 'ai-settings': return <AISettings onBack={() => navigate('settings')} />;
       default: return <Dashboard onNavigate={navigate} />;
     }
   };
 
+  const currentThemeClass = 'light'; // In a real app this would be state or from context
+
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark max-w-md mx-auto relative shadow-2xl overflow-x-hidden transition-colors duration-200">
+    <div className={`min-h-screen bg-background-light dark:bg-background-dark max-w-md mx-auto relative shadow-2xl overflow-x-hidden transition-colors duration-200 ${currentThemeClass}`}>
       <div className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none flex flex-col items-center gap-2 p-4">
         {notifications.map((notif) => (
           <div key={notif.id} onClick={() => { if (notif.targetPage) navigate(notif.targetPage); removeNotification(notif.id); }} className="w-full max-w-[340px] pointer-events-auto cursor-pointer animate-[slideInDown_0.5s_ease-out] active:scale-95 transition-transform">

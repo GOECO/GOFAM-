@@ -7,12 +7,18 @@ interface Props {
   onBack: () => void; 
   onDone: () => void; 
   onFindNearby?: () => void;
-  onNavigate?: (page: Page) => void;
+  onNavigate: (page: Page) => void;
   onDiagnose?: (data: DiagnosisResult) => void;
 }
 
 const Diagnosis: React.FC<Props> = ({ data, onBack, onDone, onNavigate }) => {
   if (!data) return null;
+
+  const handleShareToTeam = () => {
+    // Simulating sharing logic
+    alert("Đã chuẩn bị báo cáo chẩn đoán để gửi tới Đội Kỹ Thuật Farm A.");
+    onNavigate('messages');
+  };
 
   return (
     <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display antialiased text-slate-900 dark:text-white pb-32 overflow-x-hidden transition-colors duration-200">
@@ -35,8 +41,12 @@ const Diagnosis: React.FC<Props> = ({ data, onBack, onDone, onNavigate }) => {
           AI CHẨN ĐOÁN
         </h2>
         <div className="flex w-12 items-center justify-end">
-          <button className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-            <span className="material-symbols-outlined">settings</span>
+          <button 
+            onClick={handleShareToTeam}
+            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary border border-primary/20 hover:bg-primary/30 transition-colors active:scale-90"
+            title="Chia sẻ với nhóm"
+          >
+            <span className="material-symbols-outlined font-bold">share</span>
           </button>
         </div>
       </header>
@@ -149,7 +159,7 @@ const Diagnosis: React.FC<Props> = ({ data, onBack, onDone, onNavigate }) => {
               <div className="w-1.5 bg-gradient-to-b from-yellow-400 to-transparent h-16 rounded-full shrink-0 shadow-[0_0_10px_rgba(250,204,21,0.3)]"></div>
               <div className="flex flex-col gap-2">
                 <p className="text-white font-black text-base uppercase tracking-tight">Phát hiện thiếu nước nhẹ</p>
-                <p className="text-slate-400 text-xs font-bold leading-relaxed opacity-80 uppercase tracking-widest italic">
+                <p className="text-slate-400 text-xs font-bold leading-relaxed font-medium opacity-80 uppercase tracking-widest italic">
                   Độ ẩm đất giảm xuống dưới 45%. Lá bắt đầu có dấu hiệu héo nhẹ ở phần rìa. Hệ thống tưới cần can thiệp sớm.
                 </p>
               </div>

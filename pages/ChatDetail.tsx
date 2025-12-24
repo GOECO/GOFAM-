@@ -20,6 +20,21 @@ const INITIAL_MESSAGES: Message[] = [
     reactions: [{ emoji: '👍', count: 2 }]
   },
   {
+    id: 'm_shared_diag',
+    sender: 'me',
+    senderName: 'Tôi',
+    text: 'Báo cáo chẩn đoán AI hôm nay:',
+    time: '10:45',
+    isMe: true,
+    type: 'shared',
+    sharedContent: {
+      title: 'Phát hiện thiếu nước nhẹ',
+      description: 'Dâu Tây Nhật #NFT-4021 - Độ ẩm 42%',
+      icon: 'view_in_ar',
+      category: 'Diagnosis'
+    }
+  },
+  {
     id: 'm2',
     sender: 'user2',
     senderName: 'Lê Thị C',
@@ -122,6 +137,22 @@ const ChatDetail: React.FC<Props> = ({ chatId, onBack }) => {
               {!msg.isMe && <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{msg.senderName}</span>}
               
               <div className={`relative p-3.5 rounded-[1.25rem] shadow-sm ${msg.isMe ? 'bg-primary text-black rounded-br-none' : 'bg-white dark:bg-surface-dark text-gray-900 dark:text-white rounded-bl-none'}`}>
+                {msg.type === 'shared' && msg.sharedContent && (
+                  <div className="bg-black/10 dark:bg-white/5 rounded-2xl p-4 border border-black/5 dark:border-white/10 mb-3 group cursor-pointer hover:bg-black/20 transition-all min-w-[200px]">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="size-8 rounded-xl bg-primary text-black flex items-center justify-center">
+                        <span className="material-symbols-outlined !text-lg">{msg.sharedContent.icon}</span>
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{msg.sharedContent.category}</span>
+                    </div>
+                    <h5 className="font-black text-sm uppercase tracking-tight mb-1">{msg.sharedContent.title}</h5>
+                    <p className="text-[11px] font-medium opacity-70 leading-snug">{msg.sharedContent.description}</p>
+                    <div className="mt-3 pt-2 border-t border-black/5 dark:border-white/5 flex items-center justify-end text-[9px] font-black text-primary uppercase tracking-widest">
+                      Xem chi tiết <span className="material-symbols-outlined !text-xs ml-1">open_in_new</span>
+                    </div>
+                  </div>
+                )}
+
                 {msg.type === 'image' && (
                   <div className="rounded-xl overflow-hidden mb-2 relative group cursor-pointer border border-black/5 dark:border-white/5">
                     <img src={msg.imageUri} className="w-full h-auto object-cover" alt="attachment" />

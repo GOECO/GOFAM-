@@ -1,5 +1,5 @@
 
-export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'forgot-password' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings' | 'area-details' | 'reports' | 'add-task' | 'adoption' | 'virtual-garden' | 'ai-labs' | 'ap-check' | 'attendance' | 'messages' | 'chat-detail' | 'virtual-farm' | 'cultivation-log' | 'harvest' | 'blockchain-scan' | 'missions' | 'store' | 'ai-data' | 'notifications' | 'avatar-profile' | 'ai-chat';
+export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'forgot-password' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings' | 'area-details' | 'reports' | 'add-task' | 'adoption' | 'virtual-garden' | 'ai-labs' | 'ap-check' | 'attendance' | 'messages' | 'chat-detail' | 'virtual-farm' | 'cultivation-log' | 'harvest' | 'blockchain-scan' | 'missions' | 'store' | 'ai-data' | 'notifications' | 'avatar-profile' | 'ai-chat' | 'ai-settings';
 
 export interface SensorData {
   temp: number;
@@ -45,7 +45,13 @@ export interface Message {
   text: string;
   time: string;
   isMe: boolean;
-  type: 'text' | 'image' | 'file';
+  type: 'text' | 'image' | 'file' | 'shared';
+  sharedContent?: {
+    title: string;
+    description: string;
+    icon: string;
+    category: 'Diagnosis' | 'Log';
+  };
   imageUri?: string;
   fileName?: string;
   fileSize?: string;
@@ -98,4 +104,5 @@ export interface Area {
     soil?: string;
     sun?: string;
   };
+  mapPos?: { x: number; y: number };
 }
