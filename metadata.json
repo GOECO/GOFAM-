@@ -3,6 +3,7 @@
   "description": "A comprehensive pro-grade agricultural management platform featuring IoT monitoring, AI-powered disease diagnosis, Group Messaging Pro for team collaboration, and precision inventory management.",
   "requestFramePermissions": [
     "camera",
+    "microphone",
     "geolocation"
   ]
 }

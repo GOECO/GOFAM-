@@ -31,6 +31,10 @@ const HOURLY_FORECAST: HourlyData[] = [
   { time: '06:00', temp: 22, rain: 5, icon: 'wb_sunny' },
   { time: '07:00', temp: 24, rain: 0, icon: 'wb_sunny' },
   { time: '08:00', temp: 26, rain: 0, icon: 'wb_sunny' },
+  { time: '09:00', temp: 28, rain: 0, icon: 'wb_sunny' },
+  { time: '10:00', temp: 30, rain: 0, icon: 'wb_sunny' },
+  { time: '11:00', temp: 31, rain: 0, icon: 'wb_sunny' },
+  { time: '12:00', temp: 32, rain: 0, icon: 'wb_sunny' },
 ];
 
 const Weather: React.FC<Props> = ({ onBack }) => {
@@ -61,100 +65,84 @@ const Weather: React.FC<Props> = ({ onBack }) => {
     return path;
   }, [tempPoints]);
 
+  const areaPath = useMemo(() => {
+    if (tempPoints.length === 0) return "";
+    return `${linePath} L ${tempPoints[tempPoints.length - 1].x} ${chartHeight} L ${tempPoints[0].x} ${chartHeight} Z`;
+  }, [linePath, tempPoints]);
+
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display min-h-screen flex flex-col">
+    <div className="bg-background-light dark:bg-background-dark font-display min-h-screen flex flex-col transition-colors duration-300">
       {/* Header */}
-      <header className="flex items-center bg-white dark:bg-surface-dark p-4 pb-2 justify-between sticky top-0 z-50 shadow-sm border-b border-gray-100 dark:border-white/5 transition-colors duration-200">
+      <header className="flex items-center bg-white dark:bg-surface-dark p-4 pb-2 justify-between sticky top-0 z-50 shadow-sm border-b border-gray-100 dark:border-white/5">
         <button onClick={onBack} className="text-text-main-light dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
           <span className="material-symbols-outlined font-bold">arrow_back</span>
         </button>
         <div className="flex flex-col items-center">
-          <h2 className="text-text-main-light dark:text-white text-lg font-black leading-tight tracking-tight">Thời tiết Farm</h2>
-          <div className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#13ec49]"></span>
-            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Pro Mode</span>
+          <h2 className="text-text-main-light dark:text-white text-lg font-black leading-tight tracking-tight uppercase">Dự báo Nông vụ</h2>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#13ec49]"></span>
+            <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Precision Weather Pro</span>
           </div>
         </div>
         <button className="flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition text-text-main-light dark:text-white">
-          <span className="material-symbols-outlined">tune</span>
+          <span className="material-symbols-outlined">analytics</span>
         </button>
       </header>
 
-      {/* Location & Model Selector */}
-      <div className="px-4 py-3 bg-white dark:bg-surface-dark transition-colors duration-200 border-b border-gray-100 dark:border-white/5">
-        <button className="flex w-full items-center justify-between rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/10 p-3 hover:bg-gray-100 dark:hover:bg-white/5 transition mb-4">
+      {/* Location Bar */}
+      <div className="px-4 py-3 bg-white dark:bg-surface-dark border-b border-gray-100 dark:border-white/5">
+        <div className="flex w-full items-center justify-between rounded-2xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/10 p-3.5 shadow-inner">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary-dark">
-              <span className="material-symbols-outlined text-green-700 dark:text-green-400">location_on</span>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/20 text-primary shadow-sm border border-primary/20">
+              <span className="material-symbols-outlined font-black">location_on</span>
             </div>
             <div className="text-left">
-              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Khu vực canh tác</p>
-              <p className="text-text-main-light dark:text-white text-sm font-black leading-tight">Trang trại Ba Vì • Hà Nội</p>
+              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest leading-none mb-1.5">Trang trại quản lý</p>
+              <p className="text-text-main-light dark:text-white text-sm font-black uppercase tracking-tight">Khu vực Ba Vì • Zone A1</p>
             </div>
           </div>
           <span className="material-symbols-outlined text-gray-400">expand_more</span>
-        </button>
-
-        <div className="flex p-1 bg-gray-100 dark:bg-gray-800/40 rounded-xl overflow-hidden gap-1">
-          {['Tổng hợp AI', 'ECMWF', 'GFS', 'ICON'].map(model => (
-            <button 
-              key={model}
-              onClick={() => setActiveModel(model)}
-              className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeModel === model ? 'bg-white dark:bg-surface-dark shadow-sm text-text-main-light dark:text-white border border-gray-200/50 dark:border-white/5' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              {model}
-            </button>
-          ))}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-10 no-scrollbar">
-        {/* Main Weather Card */}
+      <div className="flex-1 overflow-y-auto pb-24 no-scrollbar">
+        {/* Current Weather Highlight */}
         <div className="p-4">
-          <div className="relative flex flex-col items-center justify-between rounded-[2.5rem] overflow-hidden shadow-2xl bg-surface-dark group h-[420px]">
-            <div className="absolute inset-0 z-0">
-              <img className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwUAVZEb14VRAoKuYZHOXfBV4p5Uh9U0yCi5IWMdKfB7hRoFAa_GwCE_O5x0gMTYnUdZLiVLDwZAkWPer-eS-7B543Nd9ewohU6rbttZ2wm3qGSjvreQ8dsPVuQZCA93UTzKRPVRRz6au5THo_yqWygmsB5MczRSmMZMuGBQjtzV31KrcWepeTVsIPLTRaPpQOrF-qi0iSvTgIT9-Wo87Z3Y7v7GBS-Nlq78xMIrxNXCAAE3LQk2_sonebOHTJ_Bh4yNlwfFZrORdW" alt="Farm Weather" />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90"></div>
-            </div>
+          <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl bg-slate-900 group h-80">
+            <img 
+              className="absolute inset-0 h-full w-full object-cover opacity-60 transition-transform duration-[5s] group-hover:scale-110" 
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwUAVZEb14VRAoKuYZHOXfBV4p5Uh9U0yCi5IWMdKfB7hRoFAa_GwCE_O5x0gMTYnUdZLiVLDwZAkWPer-eS-7B543Nd9ewohU6rbttZ2wm3qGSjvreQ8dsPVuQZCA93UTzKRPVRRz6au5THo_yqWygmsB5MczRSmMZMuGBQjtzV31KrcWepeTVsIPLTRaPpQOrF-qi0iSvTgIT9-Wo87Z3Y7v7GBS-Nlq78xMIrxNXCAAE3LQk2_sonebOHTJ_Bh4yNlwfFZrORdW" 
+              alt="Weather background" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-black/20"></div>
             
-            <div className="relative z-10 w-full p-8 text-white h-full flex flex-col justify-between">
+            <div className="relative z-10 h-full p-8 flex flex-col justify-between text-white">
               <div className="flex justify-between items-start">
                 <div>
-                  <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full mb-4 border border-white/10">
-                    <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></span>
-                    <span className="text-[10px] font-black uppercase tracking-widest">Dữ liệu thực - IoT Sensor #04</span>
-                  </div>
-                  <p className="text-white/70 text-xs font-bold uppercase tracking-[0.2em]">15:30, 15 Th04</p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className="material-symbols-outlined text-primary text-5xl material-symbols-filled">wb_sunny</span>
-                    <span className="text-2xl font-black tracking-tight">Nắng đẹp</span>
-                  </div>
+                   <span className="px-3 py-1 rounded-full bg-primary text-black text-[9px] font-black uppercase tracking-[0.2em] shadow-glow">Cập nhật Live</span>
+                   <p className="mt-3 text-white/60 text-[10px] font-black uppercase tracking-widest">Hôm nay, 15 Th04</p>
+                   <div className="flex items-center gap-3 mt-1">
+                      <span className="material-symbols-outlined text-yellow-300 text-5xl material-symbols-filled drop-shadow-[0_0_15px_rgba(253,224,71,0.5)]">wb_sunny</span>
+                      <span className="text-2xl font-black uppercase tracking-tight">Nắng nhẹ</span>
+                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-8xl font-black tracking-tighter leading-none">28°</p>
-                  <div className="flex items-center justify-end gap-2 mt-2">
-                    <span className="text-xs font-bold text-white/50">THẤP 22°</span>
-                    <span className="w-px h-3 bg-white/20"></span>
-                    <span className="text-xs font-bold text-white/50">CAO 31°</span>
-                  </div>
+                  <h1 className="text-8xl font-black tracking-tighter leading-none">28<span className="text-4xl align-top mt-4 inline-block font-bold">°</span></h1>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2.5 mt-8">
+              <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: 'Độ ẩm', val: '75%', icon: 'water_drop', color: 'text-primary' },
-                  { label: 'Gió', val: '15 km/h', icon: 'air', color: 'text-primary' },
-                  { label: 'Lượng mưa', val: '0 mm', icon: 'rainy', color: 'text-primary' },
-                  { label: 'Áp suất', val: '1012 hPa', icon: 'compress', color: 'text-yellow-400' },
-                  { label: 'UV Index', val: '8.5 Cao', icon: 'light_mode', color: 'text-orange-400' },
-                  { label: 'Độ ẩm Đất', val: '62%', icon: 'potted_plant', color: 'text-emerald-400' }
-                ].map(stat => (
-                  <div key={stat.label} className="bg-black/30 backdrop-blur-xl border border-white/10 flex flex-col items-center gap-1.5 rounded-[1.25rem] py-3 shadow-lg">
-                    <div className="flex items-center gap-1">
-                      <span className={`material-symbols-outlined ${stat.color} !text-base`}>{stat.icon}</span>
-                      <span className="text-[9px] text-white/40 uppercase font-black tracking-widest">{stat.label}</span>
+                  { l: 'Độ ẩm', v: '75%', i: 'water_drop', c: 'text-blue-400' },
+                  { l: 'Tia UV', v: '8.5 Cao', i: 'light_mode', c: 'text-orange-400' },
+                  { l: 'Tốc độ gió', v: '12km/h', i: 'air', c: 'text-primary' }
+                ].map(item => (
+                  <div key={item.l} className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+                    <div className="flex items-center gap-1.5 mb-1 opacity-60">
+                      <span className={`material-symbols-outlined !text-sm ${item.c}`}>{item.i}</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest">{item.l}</span>
                     </div>
-                    <span className="text-sm font-black tracking-tight">{stat.val}</span>
+                    <p className="text-sm font-black">{item.v}</p>
                   </div>
                 ))}
               </div>
@@ -162,65 +150,91 @@ const Weather: React.FC<Props> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* Integrated 24h Hourly Chart */}
+        {/* 24-Hour Detailed Chart */}
         <div className="mb-8">
           <div className="px-6 pb-4 flex justify-between items-end">
             <div className="flex flex-col">
-               <h3 className="text-text-main-light dark:text-white text-lg font-black tracking-tight uppercase">Chi tiết 24h tới</h3>
-               <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Nhiệt độ & Lượng mưa AI</p>
+              <h3 className="text-text-main-light dark:text-white text-lg font-black tracking-tight uppercase">Dự báo 24 giờ tới</h3>
+              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Tích hợp dữ liệu Trạm khí tượng & AI</p>
             </div>
-            <div className="flex gap-4 text-[9px] font-black uppercase tracking-widest">
-              <span className="flex items-center gap-1.5 text-blue-500"><span className="w-2.5 h-1.5 rounded-sm bg-blue-500"></span> Mưa</span>
-              <span className="flex items-center gap-1.5 text-primary"><span className="w-2.5 h-0.5 rounded-sm bg-primary"></span> Nhiệt</span>
+            <div className="flex gap-4">
+               <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-1.5 rounded-sm bg-blue-500/30 border border-blue-500/50"></div>
+                  <span className="text-[9px] font-black text-gray-400 uppercase">Mưa %</span>
+               </div>
+               <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-0.5 bg-primary"></div>
+                  <span className="text-[9px] font-black text-gray-400 uppercase">Nhiệt độ</span>
+               </div>
             </div>
           </div>
-          
+
           <div className="px-4">
-            <div className="bg-white dark:bg-surface-dark border border-gray-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-sm pt-8 pb-4">
-              <div className="overflow-x-auto no-scrollbar px-4">
-                <div style={{ width: chartWidth }} className="relative h-[200px]">
-                  {/* Grid Lines */}
-                  <div className="absolute inset-0 flex flex-col justify-between pointer-events-none border-b border-gray-50 dark:border-white/5">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="w-full border-t border-gray-50 dark:border-white/10 opacity-50"></div>
+            <div className="bg-white dark:bg-surface-dark border border-gray-100 dark:border-white/5 rounded-[2.5rem] shadow-sm pt-10 pb-6 relative overflow-hidden group">
+              {/* Background vertical guides */}
+              <div className="absolute inset-0 pointer-events-none px-4 flex justify-between opacity-[0.03] dark:opacity-[0.07]">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="w-px h-full bg-slate-900 dark:bg-white"></div>
+                ))}
+              </div>
+
+              <div className="overflow-x-auto no-scrollbar px-4 cursor-grab active:cursor-grabbing">
+                <div style={{ width: chartWidth }} className="relative h-[220px]">
+                  {/* Y-Axis Guides */}
+                  <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-12 pr-4">
+                    {[35, 25, 15].map(v => (
+                      <div key={v} className="border-b border-dashed border-gray-100 dark:border-white/5 w-full h-0 relative">
+                        <span className="absolute -left-6 text-[8px] font-black text-gray-300 dark:text-gray-600">{v}°</span>
+                      </div>
                     ))}
                   </div>
 
-                  {/* SVG Chart */}
-                  <svg className="absolute inset-0 w-full h-full" style={{ height: chartHeight }}>
-                    {/* Precipitation Bars */}
+                  <svg className="absolute inset-0 w-full h-full" style={{ height: chartHeight + 20 }}>
+                    <defs>
+                      <linearGradient id="tempGradient" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#13ec49" stopOpacity="0.3"></stop>
+                        <stop offset="100%" stopColor="#13ec49" stopOpacity="0"></stop>
+                      </linearGradient>
+                      <linearGradient id="rainGradient" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.5"></stop>
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.1"></stop>
+                      </linearGradient>
+                    </defs>
+
+                    {/* Rain Probability Bars */}
                     {HOURLY_FORECAST.map((d, i) => (
                       <rect 
                         key={i}
-                        x={i * 60 + 15}
+                        x={i * 60 + 18}
                         y={chartHeight - (d.rain / 100) * chartHeight}
-                        width="30"
+                        width="24"
                         height={(d.rain / 100) * chartHeight}
-                        fill="currentColor"
-                        className="text-blue-500/20 dark:text-blue-500/30"
-                        rx="4"
+                        fill="url(#rainGradient)"
+                        rx="6"
+                        className="transition-all duration-500 hover:opacity-100 opacity-80"
                       />
                     ))}
                     
-                    {/* Temperature Line */}
+                    {/* Temperature Area & Line */}
+                    <path d={areaPath} fill="url(#tempGradient)" />
                     <path 
                       d={linePath} 
                       fill="none" 
-                      stroke="currentColor" 
-                      className="text-primary" 
-                      strokeWidth="3" 
-                      strokeLinecap="round"
+                      stroke="#13ec49" 
+                      strokeWidth="3.5" 
+                      strokeLinecap="round" 
+                      className="drop-shadow-glow"
                     />
 
-                    {/* Nodes and Values */}
+                    {/* Nodes */}
                     {tempPoints.map((p, i) => (
-                      <g key={i}>
-                        <circle cx={p.x} cy={p.y} r="4" fill="white" className="dark:fill-surface-dark" stroke="#13ec49" strokeWidth="2" />
+                      <g key={i} className="group/node">
+                        <circle cx={p.x} cy={p.y} r="4" fill="#13ec49" stroke="white" className="dark:stroke-surface-dark" strokeWidth="2.5" />
                         <text 
                           x={p.x} 
                           y={p.y - 12} 
                           textAnchor="middle" 
-                          className="text-[10px] font-black fill-text-main-light dark:fill-white"
+                          className="text-[10px] font-black fill-slate-900 dark:fill-white transition-all opacity-0 group-hover/node:opacity-100"
                         >
                           {p.temp}°
                         </text>
@@ -228,19 +242,20 @@ const Weather: React.FC<Props> = ({ onBack }) => {
                     ))}
                   </svg>
 
-                  {/* X-Axis: Time and Icons */}
+                  {/* X-Axis labels (Time & Icons) */}
                   <div className="absolute bottom-0 w-full flex items-end">
                     {HOURLY_FORECAST.map((d, i) => (
-                      <div key={i} className="flex flex-col items-center justify-center w-[60px] pb-2">
-                        <span className={`material-symbols-outlined !text-xl mb-2 ${d.rain > 30 ? 'text-blue-500' : 'text-yellow-500'}`}>
+                      <div key={i} className="flex flex-col items-center justify-center w-[60px] pb-2 transition-transform hover:scale-110">
+                        <span className={`material-symbols-outlined !text-xl mb-2.5 ${d.rain > 30 ? 'text-blue-500' : 'text-yellow-400 material-symbols-filled'}`}>
                           {d.icon}
                         </span>
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">
+                        <span className="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-tighter">
                           {d.time}
                         </span>
-                        {d.rain > 0 && (
-                          <span className="text-[8px] font-black text-blue-500 mt-0.5">{d.rain}%</span>
-                        )}
+                        <div className="flex items-center gap-0.5 mt-1">
+                          <div className={`size-1 rounded-full ${d.rain > 50 ? 'bg-blue-500' : 'bg-transparent'}`}></div>
+                          <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">{d.rain > 0 ? `${d.rain}%` : '--'}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -250,167 +265,69 @@ const Weather: React.FC<Props> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* Risk Analysis Section */}
-        <div className="px-4 py-2 space-y-4">
-          <div className="flex items-center justify-between px-2">
-            <div className="flex items-center gap-2">
-              <h3 className="text-text-main-light dark:text-white text-lg font-black tracking-tight uppercase">Phân tích Rủi ro</h3>
-              <span className="bg-primary/20 text-green-700 dark:text-primary text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-[0.2em] border border-primary/20">AI Insight</span>
-            </div>
-            <button className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline underline-offset-4">Xem bản đồ</button>
-          </div>
-
-          <div className="bg-white dark:bg-surface-dark rounded-[2rem] shadow-xl border border-gray-100 dark:border-white/5 overflow-hidden relative group">
-            <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-start">
-              <div className="flex items-start gap-4">
-                <div className="size-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0 shadow-inner">
-                  <span className="material-symbols-outlined text-red-500 !text-2xl font-bold">ac_unit</span>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-text-main-light dark:text-white font-black text-base tracking-tight">Cảnh báo Sương muối</h4>
-                    <span className="px-2 py-0.5 rounded-lg bg-red-500 text-white text-[8px] font-black uppercase tracking-widest">Nguy cấp</span>
-                  </div>
-                  <p className="text-gray-400 font-bold text-[10px] uppercase mt-1 tracking-widest">Dự báo 04:00 - 06:00 sáng mai</p>
-                </div>
+        {/* AI Insight Box */}
+        <div className="px-4 mb-6">
+           <div className="bg-primary/10 border border-primary/20 rounded-[2rem] p-6 flex items-start gap-4 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                 <span className="material-symbols-outlined !text-[80px] text-primary">psychology</span>
               </div>
-              <div className="text-right">
-                <p className="text-3xl font-black text-red-500 leading-none">95%</p>
-                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Khả năng</p>
+              <div className="bg-white dark:bg-surface-dark size-11 rounded-2xl flex items-center justify-center shrink-0 shadow-lg border border-primary/20">
+                 <span className="material-symbols-outlined text-primary !text-2xl animate-pulse">tips_and_updates</span>
               </div>
-            </div>
-            
-            <div className="p-6 bg-gray-50/50 dark:bg-surface-dark-lighter">
-              <p className="text-[9px] font-black text-gray-400 mb-4 uppercase tracking-[0.2em]">Biểu đồ nhiệt độ dự kiến sáng mai</p>
-              <div className="flex items-end justify-between h-24 gap-3 mb-6 px-1">
-                {[
-                  { time: '02:00', temp: '8°', fill: '80%', color: 'bg-green-200 dark:bg-green-900/40', textColor: 'text-gray-400' },
-                  { time: '03:00', temp: '5°', fill: '50%', color: 'bg-yellow-200 dark:bg-yellow-900/40', textColor: 'text-yellow-600' },
-                  { time: '04:00', temp: '2°', fill: '20%', color: 'bg-red-400 dark:bg-red-500/80', textColor: 'text-red-500', alert: true },
-                  { time: '05:00', temp: '1°', fill: '10%', color: 'bg-red-400 dark:bg-red-500/80', textColor: 'text-red-500', alert: true },
-                  { time: '06:00', temp: '4°', fill: '40%', color: 'bg-yellow-200 dark:bg-yellow-900/40', textColor: 'text-yellow-600' },
-                ].map((item, i) => (
-                  <div key={i} className="flex flex-col items-center w-full gap-2 group">
-                    <span className={`text-[10px] font-black ${item.alert ? 'animate-pulse' : ''} ${item.textColor}`}>{item.temp}</span>
-                    <div className={`w-full ${item.color} rounded-t-lg transition-all group-hover:brightness-110 relative`} style={{ height: item.fill }}>
-                       {item.alert && <div className="absolute -top-1 w-full h-1 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>}
-                    </div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{item.time}</span>
-                  </div>
-                ))}
+              <div>
+                <p className="text-[10px] font-black text-primary-dark dark:text-primary uppercase tracking-[0.2em] mb-1.5">Gợi ý Nông vụ AI</p>
+                <p className="text-slate-800 dark:text-gray-200 text-sm leading-relaxed font-medium">
+                  Độ ẩm sẽ tăng cao vào 17:00 do có mưa dông. Hãy tạm dừng hệ thống tưới tự động tại <span className="font-black underline decoration-primary underline-offset-4">Khu vực A2</span> để tiết kiệm tài nguyên.
+                </p>
               </div>
-              <div className="flex gap-3">
-                <button className="flex-1 bg-white dark:bg-surface-dark border border-gray-200 dark:border-white/10 text-text-main-light dark:text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl shadow-sm active:scale-95 transition-transform">
-                  Chi tiết rủi ro
-                </button>
-                <button className="flex-1 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl shadow-lg shadow-red-500/20 hover:bg-red-600 active:scale-95 transition-all flex items-center justify-center gap-2">
-                  <span className="material-symbols-outlined !text-base">shield</span>
-                  Giải pháp xử lý
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-surface-dark rounded-[2rem] shadow-sm border-l-[6px] border-l-orange-500 border border-gray-100 dark:border-white/5 p-5 flex gap-5 items-center group active:scale-[0.98] transition-all">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-orange-500 !text-xl font-bold">pest_control</span>
-                </div>
-                <h4 className="text-text-main-light dark:text-white font-black text-sm uppercase tracking-tight">Nguy cơ sâu bệnh (Nấm)</h4>
-              </div>
-              <p className="text-gray-400 font-bold text-[10px] uppercase tracking-widest mb-3">Độ ẩm >80% kéo dài 3 ngày tới.</p>
-              <div className="w-full h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 w-[65%] rounded-full relative shadow-[0_0_8px_rgba(249,115,22,0.4)]"></div>
-              </div>
-              <div className="flex justify-between text-[8px] font-black text-gray-400 uppercase tracking-widest">
-                <span>Thấp</span>
-                <span className="text-orange-500 font-black">Trung bình</span>
-                <span>Cao</span>
-              </div>
-            </div>
-            <button className="shrink-0 bg-orange-50 dark:bg-orange-900/20 text-orange-500 size-12 rounded-2xl flex items-center justify-center hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-all group-hover:translate-x-1">
-              <span className="material-symbols-outlined !text-xl font-bold">arrow_forward_ios</span>
-            </button>
-          </div>
+           </div>
         </div>
 
-        <div className="h-px bg-gray-100 dark:bg-white/10 mx-6 my-6"></div>
-
-        {/* 10-Day Forecast List */}
-        <div className="px-4 pb-4">
-          <div className="flex items-center justify-between mb-6 px-2">
-            <h3 className="text-text-main-light dark:text-white text-lg font-black tracking-tight uppercase">Dự báo 10 Ngày</h3>
-            <button className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline underline-offset-4">Lịch nông vụ</button>
-          </div>
-          
-          <div className="bg-white dark:bg-surface-dark rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden">
-            <div className="grid grid-cols-12 gap-1 p-5 border-b border-gray-50 dark:border-white/5 bg-gray-50/30 dark:bg-black/10">
-              <div className="col-span-3 text-[9px] text-gray-400 font-black uppercase tracking-widest">Ngày</div>
-              <div className="col-span-4 text-[9px] text-gray-400 font-black uppercase tracking-widest text-center">Nhiệt độ</div>
-              <div className="col-span-3 text-[9px] text-gray-400 font-black uppercase tracking-widest text-center">Mưa/Ẩm</div>
-              <div className="col-span-2 text-[9px] text-gray-400 font-black uppercase tracking-widest text-right">Gió</div>
-            </div>
-
-            <div className="divide-y divide-gray-50 dark:divide-white/5">
+        {/* 7-Day Forecast Section */}
+        <div className="px-4">
+           <div className="flex items-center justify-between mb-4 px-2">
+              <h3 className="text-lg font-black uppercase tracking-tight">Dự báo 7 ngày tới</h3>
+              <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Chi tiết</button>
+           </div>
+           
+           <div className="space-y-3">
               {[
-                { day: 'Hôm nay', date: '15/04', icon: 'rainy', high: '28°', low: '22°', chance: '40%', hum: '82%', wind: '15km', dir: 'Đông Nam', active: true, color: 'text-primary' },
-                { day: 'Thứ 3', date: '16/04', icon: 'sunny', high: '31°', low: '24°', chance: '0%', hum: '65%', wind: '12km', dir: 'Đông', color: 'text-warning' },
-                { day: 'Thứ 4', date: '17/04', icon: 'partly_cloudy_day', high: '30°', low: '23°', chance: '10%', hum: '70%', wind: '10km', dir: 'Đông Nam', color: 'text-warning' },
-                { day: 'Thứ 5', date: '18/04', icon: 'cloud', high: '27°', low: '21°', chance: '60%', hum: '85%', wind: '18km', dir: 'Đông Nam', color: 'text-gray-400' },
-              ].map((day, i) => (
-                <div key={i} className={`grid grid-cols-12 gap-1 items-center p-5 transition border-transparent group cursor-pointer ${day.active ? 'bg-primary/5 dark:bg-primary/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-                  <div className="col-span-3">
-                    <p className={`text-sm font-black tracking-tight ${day.active ? 'text-primary' : 'text-text-main-light dark:text-white'}`}>{day.day}</p>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase mt-0.5">{day.date}</p>
-                  </div>
-                  <div className="col-span-4 flex items-center justify-center gap-3">
-                    <span className={`material-symbols-outlined ${day.color} !text-2xl ${day.active ? 'material-symbols-filled' : ''}`}>{day.icon}</span>
-                    <div className="flex flex-col items-center leading-none">
-                      <span className="text-sm font-black text-text-main-light dark:text-white">{day.high}</span>
-                      <span className="text-[10px] font-bold text-gray-400 mt-0.5">{day.low}</span>
-                    </div>
-                  </div>
-                  <div className="col-span-3 flex flex-col items-center justify-center">
-                    <div className={`flex items-center gap-1 font-black text-[10px] ${parseInt(day.chance) > 30 ? 'text-blue-500' : 'text-gray-400'}`}>
-                      <span className="material-symbols-outlined !text-[12px]">water_drop</span> {day.chance}
-                    </div>
-                    <span className="text-[8px] font-bold text-gray-400 uppercase mt-1">Ẩm {day.hum}</span>
-                  </div>
-                  <div className="col-span-2 text-right">
-                    <p className="text-xs font-black text-text-main-light dark:text-white">{day.wind}<span className="text-[9px] font-normal">km</span></p>
-                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">{day.dir}</p>
-                  </div>
+                /* Fix: Rename 'i' to 'icon' to match usage in map below */
+                { d: 'Thứ 3', dt: '16/04', h: 31, l: 24, icon: 'wb_sunny', c: 'text-yellow-400', p: '0%' },
+                { d: 'Thứ 4', dt: '17/04', h: 30, l: 23, icon: 'partly_cloudy_day', c: 'text-gray-400', p: '10%' },
+                { d: 'Thứ 5', dt: '18/04', h: 27, l: 21, icon: 'rainy', c: 'text-blue-500', p: '65%' },
+                { d: 'Thứ 6', dt: '19/04', h: 26, l: 22, icon: 'thunderstorm', c: 'text-blue-600', p: '80%' },
+              ].map((day, idx) => (
+                <div key={idx} className="bg-white dark:bg-surface-dark p-4 rounded-3xl border border-gray-100 dark:border-white/5 flex items-center justify-between group hover:border-primary/30 transition-all shadow-sm">
+                   <div className="w-20">
+                      <p className="text-sm font-black dark:text-white uppercase tracking-tight">{day.d}</p>
+                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{day.dt}</p>
+                   </div>
+                   <div className="flex-1 flex items-center justify-center gap-4">
+                      <span className={`material-symbols-outlined ${day.c} !text-[28px]`}>{day.icon}</span>
+                      <div className="flex items-center gap-1.5 w-12">
+                         <span className="material-symbols-outlined text-[14px] text-blue-500">water_drop</span>
+                         <span className="text-[10px] font-black">{day.p}</span>
+                      </div>
+                   </div>
+                   <div className="flex items-center gap-3 text-right">
+                      <span className="text-sm font-black dark:text-white">{day.h}°</span>
+                      <div className="w-12 h-1 bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
+                         <div className="h-full bg-primary" style={{ width: '70%', marginLeft: '15%' }}></div>
+                      </div>
+                      <span className="text-sm font-black text-gray-400">{day.l}°</span>
+                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-
-        {/* AI Farm Advice */}
-        <div className="px-4 py-4">
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-100 dark:border-green-900/30 rounded-[2rem] p-6 flex items-start gap-4 shadow-sm relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
-               <span className="material-symbols-outlined !text-7xl text-primary">psychology</span>
-            </div>
-            <div className="bg-white dark:bg-surface-dark size-12 rounded-2xl shadow-lg flex items-center justify-center shrink-0 border border-green-100 dark:border-white/5">
-              <span className="material-symbols-outlined text-green-600 dark:text-primary !text-2xl animate-pulse">tips_and_updates</span>
-            </div>
-            <div className="relative z-10">
-              <p className="text-green-900 dark:text-green-100 font-black text-sm uppercase tracking-widest mb-2">Lời khuyên nông vụ (AI)</p>
-              <p className="text-green-800 dark:text-green-200 text-sm leading-relaxed font-medium">
-                Cửa sổ phun thuốc tối ưu: <span className="font-black underline decoration-primary underline-offset-4">14:00 - 16:00 ngày mai</span>. Thời tiết khô ráo, gió nhẹ, hiệu quả thuốc tăng 20%.
-              </p>
-            </div>
-          </div>
+           </div>
         </div>
       </div>
 
       <style>{`
         .shadow-glow { box-shadow: 0 0 15px rgba(19, 236, 73, 0.4); }
+        .drop-shadow-glow { filter: drop-shadow(0 0 8px rgba(19, 236, 73, 0.4)); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .drop-shadow-glow { filter: drop-shadow(0 0 8px rgba(19, 236, 73, 0.5)); }
       `}</style>
     </div>
   );

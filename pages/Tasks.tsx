@@ -71,8 +71,15 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
   // Filtering States
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'All'>('All');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'All'>('All');
+  const [areaFilter, setAreaFilter] = useState<string>('All');
   
   const [detailTask, setDetailTask] = useState<Task | null>(null);
+
+  // Extract unique areas from tasks
+  const availableAreas = useMemo(() => {
+    const areas = new Set(tasks.map(t => t.area));
+    return ['All', ...Array.from(areas)];
+  }, [tasks]);
 
   const filteredTasks = useMemo(() => {
     let result = tasks.filter(t => t.dueDate === selectedDate);
@@ -84,9 +91,13 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
     if (statusFilter !== 'All') {
       result = result.filter(t => t.status === statusFilter);
     }
+
+    if (areaFilter !== 'All') {
+      result = result.filter(t => t.area === areaFilter);
+    }
     
     return result;
-  }, [tasks, selectedDate, priorityFilter, statusFilter]);
+  }, [tasks, selectedDate, priorityFilter, statusFilter, areaFilter]);
 
   const getPriorityColor = (p: Priority) => {
     switch(p) {
@@ -211,7 +222,23 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
         {/* Advanced Filters */}
-        <div className="px-4 py-3 space-y-3">
+        <div className="px-4 py-3 space-y-4">
+          {/* Area Filter */}
+          <div>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Khu vực</p>
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+              {availableAreas.map((a) => (
+                <button 
+                  key={a} 
+                  onClick={() => setAreaFilter(a)}
+                  className={`shrink-0 px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${areaFilter === a ? 'bg-primary text-black shadow-md' : 'bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 text-gray-500'}`}
+                >
+                  {a === 'All' ? 'Tất cả' : a}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Status Filter */}
           <div>
             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">Trạng thái</p>
@@ -245,7 +272,7 @@ const Tasks: React.FC<Props> = ({ onBack, onNavigate }) => {
           </div>
         </div>
 
-        {/* Timeline View - 50% GAP REDUCTION */}
+        {/* Timeline View */}
         <div className="px-4 flex flex-col pt-2">
           {filteredTasks.length > 0 ? filteredTasks.map((task, i) => {
             const statusCfg = getStatusConfig(task.status);

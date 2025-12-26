@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GOFAM Pro</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,FILL@0..1&display=swap" rel="stylesheet" />
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -26,7 +26,7 @@
                         "text-sub-dark": "#a0bba6",
                     },
                     fontFamily: {
-                        "display": ["Lexend", "sans-serif"],
+                        "display": ["Space Grotesk", "Lexend", "sans-serif"],
                         "body": ["Inter", "sans-serif"],
                         "mono": ["JetBrains Mono", "monospace"]
                     },
@@ -34,31 +34,47 @@
                         "DEFAULT": "0.25rem",
                         "lg": "0.5rem",
                         "xl": "0.75rem",
-                        "2xl": "1rem",
-                        "3xl": "1.5rem",
+                        "2xl": "1rem", 
+                        "3xl": "1.5rem", 
+                        "card": "2.25rem", 
                         "full": "9999px"
                     },
                     boxShadow: {
-                        "soft": "0 4px 20px -2px rgba(0, 0, 0, 0.05)",
-                        "glow": "0 0 15px rgba(19, 236, 73, 0.25)"
+                        "soft": "0 8px 32px rgba(0, 0, 0, 0.05)",
+                        "glow": "0 0 15px rgba(19, 236, 73, 0.25)",
+                        "glow-red": "0 0 15px rgba(139, 0, 0, 0.25)"
                     }
                 },
             },
         }
     </script>
     <style>
-        body { font-family: 'Lexend', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Space Grotesk', sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .material-symbols-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-family: 'Material Symbols Outlined'; }
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
+        
+        .active-scale { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .active-scale:active { transform: scale(0.95); }
+        
+        .map-pattern {
+            background-color: #e5e7eb;
+            background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCFlkYuzlW4cXBh_HHtm8YnGcGUeATg_PO9PVrKv-XbDhz_J2lJkN0gqziEaukgJTfTdIPpxrlyANwRi_QzqI21nH9qG3DmIRQySeHWYmLbNbif_kMqIpMx5EtsY4K8qHf6eFBbB1MUtAaqpgoMmJEjxvhXfbc4EKg0ZoFy8kCs938rRr-chXJHmoJMUnHkxOvfaemREmMTelbe8eQCEPf8AFG_w97-FDgTON_Cl3_LKAqt9vHn8MrOn2WJkNl7TaWQd20jxsEGeT0O");
+            background-size: cover;
         }
-        .scanner-line { animation: scan 2s infinite linear; }
+        .dark .map-pattern {
+            background-color: #1f2937;
+            background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDvFPtSiQ-1DmoRGAGoWPB_y4BAudm-ZXPTceuKIUrGz4GFxW4nkYkscdLuZFM7zgNnFXrR2-_WJmCLBDIDNmova7gZuj0_uMUldND3a_NzFmpeYfHXUz5Qmjd0IrRmDfXOESfzsTKf-6KRxlx-qXHemvItTBLwKPWyyZIqBCTmXzhi4lZ3l1hx-dYNpT_cg8Mf7ZUrlCR-g4RulfCF4ioHEtlvBSlp6PLaBG78UUYj_o5AqxLsqC9HMVK0V_omsMUicnphLx1OaTWM");
+            background-size: cover;
+        }
+
+        @keyframes pulse-red {
+            0% { color: #8B0000; opacity: 0.5; }
+            50% { color: #A00000; opacity: 1; }
+            100% { color: #8B0000; opacity: 0.5; }
+        }
+        .animate-pulse-red { animation: pulse-red 2s infinite ease-in-out; }
     </style>
 <script type="importmap">
 {

@@ -1,10 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Page } from '../types';
 
 interface Props { onBack: () => void; onNavigate: (page: Page) => void; }
 
+type AICategory = 'All' | 'Health' | 'Soil' | 'Pest' | 'Profit';
+
 const AIFarmData: React.FC<Props> = ({ onBack, onNavigate }) => {
+  const [activeCategory, setActiveCategory] = useState<AICategory>('All');
+
+  const categories = [
+    { id: 'All', label: 'Tất cả', icon: 'grid_view' },
+    { id: 'Health', label: 'Sức khỏe', icon: 'ecg_heart' },
+    { id: 'Soil', label: 'Phân tích đất', icon: 'science' },
+    { id: 'Pest', label: 'Sâu bệnh', icon: 'pest_control' },
+    { id: 'Profit', label: 'Dự báo', icon: 'monetization_on' },
+  ];
+
+  const shouldShow = (cat: AICategory) => activeCategory === 'All' || activeCategory === cat;
+
   return (
     <div className="relative flex min-h-screen w-full flex-col max-w-md mx-auto overflow-x-hidden shadow-2xl bg-background-light dark:bg-background-dark pb-24 font-display transition-colors duration-300">
       {/* Header */}
@@ -28,170 +42,229 @@ const AIFarmData: React.FC<Props> = ({ onBack, onNavigate }) => {
         </button>
       </header>
 
+      {/* Category Tabs (Filters) */}
+      <div className="sticky top-[73px] z-40 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-gray-100 dark:border-white/5">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveCategory(cat.id as AICategory)}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-xl px-4 transition-all active:scale-95 border ${
+              activeCategory === cat.id 
+                ? 'bg-primary border-primary text-black font-black shadow-glow' 
+                : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800 text-gray-500 font-bold'
+            }`}
+          >
+            <span className={`material-symbols-outlined text-[18px] ${activeCategory === cat.id ? 'material-symbols-filled' : ''}`}>{cat.icon}</span>
+            <span className="text-[10px] uppercase tracking-widest whitespace-nowrap">{cat.label}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Main Content Scroll */}
       <main className="flex-1 flex flex-col gap-6 p-4 overflow-y-auto no-scrollbar">
-        {/* Section 1: Crop Vitals (Stats) */}
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-tight">
-              <span className="material-symbols-outlined text-primary text-[20px] font-bold">ecg_heart</span>
-              Chỉ số cây trồng
-            </h3>
-            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Cập nhật: 2m trước</span>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {/* Humidity Card */}
-            <div className="flex flex-col gap-2 rounded-3xl p-4 bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group active:scale-95 transition-all">
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-100 dark:bg-white/10">
-                <div className="h-full bg-blue-500 w-[68%] shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+        
+        {/* Section 1: Crop Health / Vitals */}
+        {shouldShow('Health') && (
+          <section className="flex flex-col gap-4 animate-fadeIn">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                <span className="material-symbols-outlined text-primary text-[20px] font-bold">ecg_heart</span>
+                Sức khỏe cây trồng
+              </h3>
+              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Cập nhật: 2m trước</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-2 rounded-3xl p-5 bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group active:scale-95 transition-all">
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-100 dark:bg-white/10">
+                  <div className="h-full bg-primary w-[98%] shadow-glow"></div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="material-symbols-outlined text-primary !text-[24px] font-bold">spa</span>
+                  <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded uppercase">Tốt</span>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Chỉ số sinh trưởng</p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-white">98.5<span className="text-xs align-top font-bold">%</span></p>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-blue-500 mb-1">
-                <span className="material-symbols-outlined text-[20px]">water_drop</span>
-              </div>
-              <div>
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Độ ẩm đất</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white">68<span className="text-xs align-top font-bold">%</span></p>
+              <div className="flex flex-col gap-2 rounded-3xl p-5 bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group active:scale-95 transition-all">
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-100 dark:bg-white/10">
+                  <div className="h-full bg-yellow-500 w-[92%]"></div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="material-symbols-outlined text-yellow-500 !text-[24px]">sunny</span>
+                  <span className="text-[9px] font-black text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded uppercase">Đạt</span>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Quang hợp (PAR)</p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-white">1250<span className="text-xs align-top font-bold">uE</span></p>
+                </div>
               </div>
             </div>
-            {/* pH Card */}
-            <div className="flex flex-col gap-2 rounded-3xl p-4 bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group active:scale-95 transition-all">
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-100 dark:bg-white/10">
-                <div className="h-full bg-primary w-[80%] shadow-glow"></div>
-              </div>
-              <div className="flex items-center gap-2 text-primary mb-1">
-                <span className="material-symbols-outlined text-[20px] font-bold">science</span>
-              </div>
-              <div>
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">pH Đất</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white">6.5</p>
-              </div>
-            </div>
-            {/* Nutrients Card */}
-            <div className="flex flex-col gap-2 rounded-3xl p-4 bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group active:scale-95 transition-all">
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-100 dark:bg-white/10">
-                <div className="h-full bg-yellow-500 w-[95%] shadow-[0_0_8px_rgba(234,179,8,0.5)]"></div>
-              </div>
-              <div className="flex items-center gap-2 text-yellow-500 mb-1">
-                <span className="material-symbols-outlined text-[20px]">compost</span>
-              </div>
-              <div>
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">NPK</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white uppercase">Tốt</p>
-              </div>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        {/* Section 2: Alerts (ActionPanel) */}
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-tight">
-              <span className="material-symbols-outlined text-red-500 text-[20px] font-bold">warning</span>
-              Cảnh báo sâu bệnh
-            </h3>
-          </div>
-          <div className="rounded-[2.5rem] border border-red-500/30 bg-red-500/5 dark:bg-red-900/10 p-6 relative overflow-hidden group">
-            {/* Background pattern effect */}
-            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-500/10 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <div className="relative z-10 flex flex-col gap-5">
-              <div className="flex items-start justify-between">
-                <div className="flex gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-500 text-white shadow-lg shadow-red-500/20">
-                    <span className="material-symbols-outlined !text-3xl">pest_control</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <h4 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">Phát hiện Rệp sáp</h4>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="inline-flex items-center rounded-lg bg-red-500/20 px-2.5 py-1 text-[9px] font-black text-red-500 uppercase tracking-widest border border-red-500/30">Rủi ro cao 78%</span>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">• Khu vực B2</span>
+        {/* Section 2: Soil Analysis */}
+        {shouldShow('Soil') && (
+          <section className="flex flex-col gap-4 animate-fadeIn">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                <span className="material-symbols-outlined text-blue-500 text-[20px] font-bold">science</span>
+                Phân tích đất học
+              </h3>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {/* Humidity Card */}
+              <div className="flex flex-col gap-2 rounded-3xl p-4 bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group active:scale-95 transition-all">
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-100 dark:bg-white/10">
+                  <div className="h-full bg-blue-500 w-[68%] shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                </div>
+                <div className="flex items-center gap-2 text-blue-500 mb-1">
+                  <span className="material-symbols-outlined text-[20px]">water_drop</span>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Độ ẩm đất</p>
+                  <p className="text-xl font-black text-slate-900 dark:text-white">68<span className="text-xs align-top font-bold">%</span></p>
+                </div>
+              </div>
+              {/* pH Card */}
+              <div className="flex flex-col gap-2 rounded-3xl p-4 bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group active:scale-95 transition-all">
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-100 dark:bg-white/10">
+                  <div className="h-full bg-primary w-[80%] shadow-glow"></div>
+                </div>
+                <div className="flex items-center gap-2 text-primary mb-1">
+                  <span className="material-symbols-outlined text-[20px] font-bold">science</span>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">pH Đất</p>
+                  <p className="text-xl font-black text-slate-900 dark:text-white">6.5</p>
+                </div>
+              </div>
+              {/* Nutrients Card */}
+              <div className="flex flex-col gap-2 rounded-3xl p-4 bg-white dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group active:scale-95 transition-all">
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-100 dark:bg-white/10">
+                  <div className="h-full bg-yellow-500 w-[95%] shadow-[0_0_8px_rgba(234,179,8,0.5)]"></div>
+                </div>
+                <div className="flex items-center gap-2 text-yellow-500 mb-1">
+                  <span className="material-symbols-outlined text-[20px]">compost</span>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">NPK</p>
+                  <p className="text-xl font-black text-slate-900 dark:text-white uppercase">Tốt</p>
+                </div>
+              </div>
+            </div>
+            {/* Detailed Soil Analysis AI Card */}
+            <div className="bg-blue-500/5 dark:bg-blue-900/10 border border-blue-500/20 rounded-[2rem] p-5 flex flex-col gap-3">
+              <div className="flex items-center gap-2 text-blue-500">
+                <span className="material-symbols-outlined !text-xl">analytics</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">AI Soil Insights</span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-blue-100/70 leading-relaxed font-medium">
+                Cấu trúc đất hiện tại có độ thoát nước tốt, nhưng hàm lượng Nitơ (N) đang giảm nhẹ sau đợt mưa lớn. <span className="text-blue-600 dark:text-blue-400 font-bold underline underline-offset-4 decoration-1">Bổ sung phân hữu cơ</span> lỏng trong chu kỳ tưới tiếp theo là tối ưu nhất.
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* Section 3: Pest Identification / Alerts */}
+        {shouldShow('Pest') && (
+          <section className="flex flex-col gap-4 animate-fadeIn">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                <span className="material-symbols-outlined text-red-500 text-[20px] font-bold">warning</span>
+                Nhận diện sâu bệnh
+              </h3>
+            </div>
+            <div className="rounded-[2.5rem] border border-red-500/30 bg-red-500/5 dark:bg-red-900/10 p-6 relative overflow-hidden group">
+              <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-500/10 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="relative z-10 flex flex-col gap-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-500 text-white shadow-lg shadow-red-500/20">
+                      <span className="material-symbols-outlined !text-3xl">pest_control</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <h4 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">Phát hiện Rệp sáp</h4>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="inline-flex items-center rounded-lg bg-red-500/20 px-2.5 py-1 text-[9px] font-black text-red-500 uppercase tracking-widest border border-red-500/30">Rủi ro cao 78%</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">• Khu vực B2</span>
+                      </div>
                     </div>
                   </div>
                 </div>
+                <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed font-medium">
+                  AI phân tích hình ảnh lá cây cho thấy dấu hiệu lây lan nhanh. Khuyến nghị xử lý ngay để tránh giảm <span className="text-red-500 font-black">15% sản lượng</span>.
+                </p>
+                <button onClick={() => alert("Đã gửi lệnh xử lý!")} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 h-14 text-xs font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-red-500/20 hover:bg-red-600 transition-all active:scale-[0.98]">
+                  <span className="material-symbols-outlined text-[18px] font-bold">healing</span>
+                  Xử lý ngay (-50 Token)
+                </button>
               </div>
-              <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed font-medium">
-                AI phân tích hình ảnh lá cây cho thấy dấu hiệu lây lan nhanh. Khuyến nghị xử lý ngay để tránh giảm <span className="text-red-500 font-black">15% sản lượng</span>.
-              </p>
-              <button onClick={() => alert("Đã gửi lệnh xử lý!")} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 h-14 text-xs font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-red-500/20 hover:bg-red-600 transition-all active:scale-[0.98]">
-                <span className="material-symbols-outlined text-[18px] font-bold">healing</span>
-                Xử lý ngay (-50 Token)
-              </button>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        {/* Section 3: Profit Optimization (Chart & Lists) */}
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-tight">
-              <span className="material-symbols-outlined text-yellow-500 text-[20px] font-bold">monetization_on</span>
-              Dự báo lợi nhuận
-            </h3>
-          </div>
-          {/* Main Chart Card */}
-          <div className="flex flex-col rounded-[2.5rem] bg-white dark:bg-surface-dark p-6 shadow-sm border border-gray-100 dark:border-white/5 group">
-            <div className="flex flex-col gap-1 mb-6">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Xu hướng GOFAM dự kiến</p>
-              <div className="flex items-baseline gap-2 mt-1">
-                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">+125 <span className="text-lg font-bold text-gray-400">GFM</span></h2>
-                <div className="flex items-center text-primary text-[10px] font-black bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 uppercase tracking-widest">
-                  <span className="material-symbols-outlined text-[14px] mr-0.5 font-bold">trending_up</span>
-                  12%
+        {/* Section 4: Profit Forecast */}
+        {shouldShow('Profit') && (
+          <section className="flex flex-col gap-4 animate-fadeIn">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                <span className="material-symbols-outlined text-yellow-500 text-[20px] font-bold">monetization_on</span>
+                Dự báo lợi nhuận & Giá
+              </h3>
+            </div>
+            {/* Main Chart Card */}
+            <div className="flex flex-col rounded-[2.5rem] bg-white dark:bg-surface-dark p-6 shadow-sm border border-gray-100 dark:border-white/5 group">
+              <div className="flex flex-col gap-1 mb-6">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Xu hướng GOFAM dự kiến</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">+125 <span className="text-lg font-bold text-gray-400">GFM</span></h2>
+                  <div className="flex items-center text-primary text-[10px] font-black bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 uppercase tracking-widest">
+                    <span className="material-symbols-outlined text-[14px] mr-0.5 font-bold">trending_up</span>
+                    12%
+                  </div>
                 </div>
               </div>
+              {/* Chart SVG */}
+              <div className="relative h-32 w-full overflow-hidden">
+                <svg className="h-full w-full" preserveAspectRatio="none" viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="chartGradientData" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#13ec49" stopOpacity="0.3"></stop>
+                      <stop offset="100%" stopColor="#13ec49" stopOpacity="0"></stop>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0 80 C 40 80, 60 50, 100 50 C 140 50, 160 70, 200 60 C 240 50, 260 20, 300 10" fill="none" stroke="#13ec49" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" className="drop-shadow-glow"></path>
+                  <path d="M0 80 C 40 80, 60 50, 100 50 C 140 50, 160 70, 200 60 C 240 50, 260 20, 300 10 V 100 H 0 Z" fill="url(#chartGradientData)"></path>
+                  <circle cx="300" cy="10" r="4" fill="#13ec49" className="animate-pulse"></circle>
+                </svg>
+              </div>
             </div>
-            {/* Chart SVG */}
-            <div className="relative h-32 w-full overflow-hidden">
-              <svg className="h-full w-full" preserveAspectRatio="none" viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="chartGradientData" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#13ec49" stopOpacity="0.3"></stop>
-                    <stop offset="100%" stopColor="#13ec49" stopOpacity="0"></stop>
-                  </linearGradient>
-                </defs>
-                <path d="M0 80 C 40 80, 60 50, 100 50 C 140 50, 160 70, 200 60 C 240 50, 260 20, 300 10" fill="none" stroke="#13ec49" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" className="drop-shadow-glow"></path>
-                <path d="M0 80 C 40 80, 60 50, 100 50 C 140 50, 160 70, 200 60 C 240 50, 260 20, 300 10 V 100 H 0 Z" fill="url(#chartGradientData)"></path>
-                <circle cx="300" cy="10" r="4" fill="#13ec49" className="animate-pulse"></circle>
-              </svg>
-            </div>
-          </div>
 
-          {/* AI Suggestions List */}
-          <div className="flex flex-col gap-4 mt-2">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] px-1">Gợi ý từ AI Hệ thống</p>
-            {/* Suggestion 1 */}
-            <div className="group flex items-center justify-between gap-4 rounded-3xl bg-white dark:bg-surface-dark p-5 shadow-sm border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer active:scale-[0.98]">
-              <div className="flex items-center gap-4">
-                <div className="flex size-11 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                  <span className="material-symbols-outlined !text-2xl">water_lux</span>
+            {/* AI Suggestions List */}
+            <div className="flex flex-col gap-4 mt-2">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] px-1">Gợi ý từ AI Thị trường</p>
+              {/* Suggestion 1 */}
+              <div className="group flex items-center justify-between gap-4 rounded-3xl bg-white dark:bg-surface-dark p-5 shadow-sm border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer active:scale-[0.98]">
+                <div className="flex items-center gap-4">
+                  <div className="flex size-11 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                    <span className="material-symbols-outlined !text-2xl">water_lux</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Giảm tưới 10%</span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Độ ẩm không khí đang cao</span>
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Giảm tưới 10%</span>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Độ ẩm không khí đang cao</span>
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-black text-primary uppercase tracking-tight">+5 GFM</span>
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">/ngày</span>
                 </div>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-sm font-black text-primary uppercase tracking-tight">+5 GFM</span>
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">/ngày</span>
               </div>
             </div>
-            {/* Suggestion 2 */}
-            <div className="group flex items-center justify-between gap-4 rounded-3xl bg-white dark:bg-surface-dark p-5 shadow-sm border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer active:scale-[0.98]">
-              <div className="flex items-center gap-4">
-                <div className="flex size-11 items-center justify-center rounded-2xl bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 group-hover:bg-yellow-500 group-hover:text-white transition-colors">
-                  <span className="material-symbols-outlined !text-2xl">solar_power</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Tăng chiếu sáng</span>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Kích thích quang hợp</span>
-                </div>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-sm font-black text-primary uppercase tracking-tight">+8 GFM</span>
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">/ngày</span>
-              </div>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
+        
         <div className="h-6"></div> {/* Spacer */}
       </main>
 
@@ -227,6 +300,8 @@ const AIFarmData: React.FC<Props> = ({ onBack, onNavigate }) => {
         .drop-shadow-glow { filter: drop-shadow(0 0 10px rgba(19, 236, 73, 0.4)); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
       `}</style>
     </div>
   );

@@ -1,5 +1,5 @@
 
-export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'forgot-password' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings' | 'area-details' | 'reports' | 'add-task' | 'adoption' | 'virtual-garden' | 'ai-labs' | 'ap-check' | 'attendance' | 'messages' | 'chat-detail' | 'virtual-farm' | 'cultivation-log' | 'harvest' | 'blockchain-scan' | 'missions' | 'store' | 'ai-data' | 'notifications' | 'avatar-profile' | 'ai-chat' | 'ai-settings';
+export type Page = 'splash' | 'onboarding' | 'login' | 'signup' | 'forgot-password' | 'dashboard' | 'weather' | 'tasks' | 'inventory' | 'scan' | 'diagnosis' | 'marketplace' | 'wallet' | 'areas' | 'nearby' | 'settings' | 'area-details' | 'reports' | 'add-task' | 'adoption' | 'virtual-garden' | 'ai-labs' | 'ap-check' | 'attendance' | 'messages' | 'chat-detail' | 'virtual-farm' | 'cultivation-log' | 'harvest' | 'blockchain-scan' | 'missions' | 'store' | 'ai-data' | 'notifications' | 'avatar-profile' | 'ai-chat' | 'ai-settings' | 'live-assistant';
 
 export interface SensorData {
   temp: number;

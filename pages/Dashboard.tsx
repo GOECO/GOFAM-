@@ -1,257 +1,255 @@
 
-import React, { useState, useEffect } from 'react';
-import { Page, SensorData } from '../types';
+import React from 'react';
+import { Page } from '../types';
 
 interface Props { onNavigate: (page: Page) => void; }
 
 const Dashboard: React.FC<Props> = ({ onNavigate }) => {
-  const [sensors, setSensors] = useState<SensorData>({
-    temp: 28.5,
-    humidity: 65,
-    soilMoisture: 42,
-    ph: 6.5,
-    lux: 12000
-  });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSensors(prev => ({
-        ...prev,
-        temp: +(prev.temp + (Math.random() - 0.5) * 0.1).toFixed(1),
-        humidity: Math.min(100, Math.max(0, prev.humidity + Math.floor(Math.random() * 3) - 1)),
-      }));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleShareAlert = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const shareText = `⚠️ CẢNH BÁO GOFAM PRO: Vườn 1 thiếu nước nghiêm trọng (${sensors.soilMoisture}%). Cần xử lý ngay!`;
-    if (navigator.share) {
-      navigator.share({ title: 'Gofam Alert', text: shareText }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(shareText);
-      alert('Đã sao chép nội dung cảnh báo.');
-    }
-  };
-
-  const zones = [
-    { id: '1', name: 'Vườn Ổi', desc: '120 Cây • Đang ra hoa', status: 'good', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCLXArEVl7PI8hLTtcO-S6z0KfGYQ4ZUBIYe4wrybFRthoyAIhUjaTkNe6Q9Q5HlVNcmYIv1mgdEdrKv5ZIng4_bX_rjiplTB8dXjOM7dEXbC5jjKSNaJuDPY_ZYeRD2zihzgZyJKr3vHCCori-3vSGEFzG6rMnPIAk1dpF4oayzKivWPIS9Xf0P8PGAXRMrS3Y8RAfOg331Yg1h9RyJBII7aq3IbQtZU9CUVE15PQwGdfQEwZ5OSAddPyYniVjfmZ7RsjG8vTXxCon' },
-    { id: '2', name: 'Chuồng Gà', desc: '500 Con • Ăn dặm', status: 'warning', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDs46jIDn1rWA8LmwCK-jBz375KK7yyGPdQ5eC7aF5KiHgKm6p8nBKh-m4_-yAsDRRMlEAAFtqLRFQNgbNzaHaiwxnStPLeKz7W6LWbV9lUTKd1DA5zybf2LMaX9jckJYNZSNkjet13PWbLvpwHmHihcAApwwvDdYiQ2giVtPOOgL9ZAbSiOQPnvwqxYk3RcgSWIR-2YBOpzFAHjblNtIcb5dIfsUABhniuVpJMmD3GP1BTqsCiGJdQ1BzZMc18vqAfTQkDUTXlCJ9q' }
+  const marketPrices = [
+    { name: 'Lúa ST25', price: '12.500', change: '+2%' },
+    { name: 'Cà phê', price: '95.200', change: '+1.5%' },
+    { name: 'Hồ tiêu', price: '82.000', change: '-0.5%' },
+    { name: 'Dâu tây', price: '250.000', change: '+5%' },
   ];
 
   return (
-    <div className="bg-background-light dark:bg-background-dark min-h-screen font-display text-[#111714] pb-24 transition-colors duration-300">
-      <header className="sticky top-0 z-50 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-md">
-        <div className="flex items-center px-5 py-4 justify-between">
+    <div className="bg-background-light dark:bg-background-dark min-h-screen font-display text-text-main-light dark:text-white pb-24 transition-colors duration-500">
+      {/* Top Header - Command Center Style */}
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-surface-dark/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 transition-all shadow-soft">
+        <div className="flex items-center px-5 py-3.5 justify-between">
           <div className="flex items-center gap-3">
-             <div className="size-11 rounded-2xl bg-primary flex items-center justify-center shadow-glow">
-                <span className="material-symbols-outlined text-[#111714] font-black">agriculture</span>
+             <div onClick={() => onNavigate('dashboard')} className="size-11 rounded-2xl bg-primary flex items-center justify-center shadow-glow active-scale cursor-pointer">
+                <span className="material-symbols-outlined text-[#8B0000]/50 font-black scale-[0.8]">agriculture</span>
              </div>
              <div className="flex flex-col">
-               <span className="text-[10px] font-black text-primary tracking-[0.2em] uppercase leading-none mb-1">GOFAM PRO</span>
-               <h1 className="text-lg font-bold leading-none dark:text-white uppercase tracking-tight">Ba Vì Farm</h1>
+               <span className="text-[10px] font-black text-primary tracking-[0.2em] uppercase leading-none mb-1">COMMAND CENTER</span>
+               <h1 className="text-lg font-bold leading-none dark:text-white uppercase tracking-tight italic">Ba Vì <span className="text-primary not-italic font-black">Pro Farm</span></h1>
              </div>
           </div>
-          <button onClick={() => onNavigate('notifications')} className="relative flex size-11 items-center justify-center rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-gray-800">
-            <span className="material-symbols-outlined dark:text-white">notifications</span>
-            <span className="absolute top-2.5 right-2.5 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-surface-dark"></span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => onNavigate('live-assistant')} className="size-11 flex items-center justify-center rounded-2xl bg-primary/10 active-scale border border-primary/20 transition-all hover:bg-primary/20">
+              <span className="material-symbols-outlined animate-pulse-red !text-[20px] scale-[0.8]">mic</span>
+            </button>
+            <button onClick={() => onNavigate('notifications')} className="relative size-11 flex items-center justify-center rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 active-scale transition-colors hover:border-primary/30">
+              <span className="material-symbols-outlined dark:text-white scale-[0.8]">notifications</span>
+              <span className="absolute top-2.5 right-2.5 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-surface-dark"></span>
+            </button>
+          </div>
+        </div>
+
+        {/* Market Ticker */}
+        <div className="bg-slate-900 dark:bg-black/40 py-2.5 border-y border-white/5 overflow-hidden">
+          <div className="flex animate-marquee whitespace-nowrap gap-10">
+            {marketPrices.concat(marketPrices).map((item, i) => (
+              <div key={i} className="flex items-center gap-2 px-1">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{item.name}</span>
+                <span className="text-[11px] font-black text-white">{item.price}đ</span>
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${item.change.startsWith('+') ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                  {item.change}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </header>
 
-      <main className="flex flex-col gap-5 px-5 pt-2">
-        {/* Critical Alert Banner with exact classes for selector matching */}
-        <section 
-          onClick={() => onNavigate('area-details')}
-          className="w-full rounded-[1.5rem] bg-red-50 dark:bg-red-900/20 border-red-500 border ring-1 ring-red-500/50 shadow-xl scale-[1.02] p-4 group transition-all cursor-pointer relative shadow-[0_0_50px_rgba(239,68,68,0.25)]"
-        >
-          <div className="flex items-center justify-between relative z-10">
-            <div className="flex items-center gap-3 flex-1 min-w-0 relative">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500 text-white shadow-lg animate-pulse">
-                <span className="material-symbols-outlined">emergency_home</span>
-              </div>
-              <div className="flex flex-col flex-1 min-w-0">
-                <h3 className="1 text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest group-hover:text-red-900 transition-colors">
-                  CẢNH BÁO KHẨN CẤP
-                  {/* Tooltip implementation */}
-                  <div className="absolute -top-14 left-0 bg-red-600 text-white text-[9px] font-black px-3 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-[100] shadow-2xl border border-red-400/30 translate-y-2 group-hover:translate-y-0 uppercase tracking-widest">
-                    AI: Cần can thiệp ngay lập tức!
-                    <div className="absolute -bottom-1 left-4 w-2 h-2 bg-red-600 rotate-45"></div>
-                  </div>
-                </h3>
-                <p className="text-xs font-bold text-red-900 dark:text-red-200 truncate">Vườn 1 thiếu nước nghiêm trọng!</p>
-              </div>
+      <main className="flex flex-col gap-1.5 px-4 pt-3">
+        {/* Core Metrics with Smart Links */}
+        <section className="grid grid-cols-2 gap-1.5">
+          <div 
+            onClick={() => onNavigate('weather')}
+            className="bg-white dark:bg-surface-dark rounded-card p-4 border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-3 active-scale cursor-pointer hover:border-blue-400/30 transition-all"
+          >
+            <div className="size-11 rounded-2xl bg-blue-500/10 text-slate-500/70 flex items-center justify-center shrink-0 border border-blue-500/20">
+              <span className="material-symbols-outlined !text-2xl scale-[0.8]">wb_sunny</span>
             </div>
-            
-            <div className="flex items-center gap-2 shrink-0">
-              <button 
-                onClick={handleShareAlert}
-                className="size-10 rounded-xl bg-red-100 dark:bg-red-800 text-red-600 dark:text-red-100 flex items-center justify-center border border-red-200 dark:border-red-700 active:scale-90 transition-all shadow-sm"
-                title="Chia sẻ báo cáo"
+            <div className="min-w-0">
+              <p className="text-[9px] font-black text-gray-400 uppercase leading-none mb-1">Thời tiết</p>
+              <p className="text-sm font-black dark:text-white truncate">28°C • Nắng</p>
+            </div>
+          </div>
+          
+          <div 
+            onClick={() => onNavigate('wallet')}
+            className="bg-slate-900 rounded-card p-4 border border-white/10 shadow-xl flex items-center gap-3 active-scale cursor-pointer hover:bg-slate-800 transition-all"
+          >
+            <div className="size-11 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30">
+              <span className="material-symbols-outlined !text-2xl scale-[0.8] text-[#8B0000]/50">account_balance_wallet</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[9px] font-black text-primary uppercase leading-none mb-1">Ví Token</p>
+              <p className="text-sm font-black text-white truncate">1,240 <span className="text-[10px] text-gray-400">GFM</span></p>
+            </div>
+          </div>
+        </section>
+
+        {/* Live Surveillance - Click to Areas detail */}
+        <section className="flex flex-col gap-2 mt-1">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+               <h2 className="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em]">Surveillance Pro</h2>
+               <span className="px-2 py-0.5 rounded bg-red-600 text-white text-[8px] font-black uppercase animate-pulse">Live</span>
+            </div>
+            <div 
+              onClick={() => onNavigate('ap-check')}
+              className="flex items-center gap-2 bg-primary/10 px-2 py-1 rounded-lg border border-primary/20 cursor-pointer active-scale hover:bg-primary/20 transition-all"
+            >
+               <span className="material-symbols-outlined !text-xs text-[#8B0000]/80 animate-spin-slow">helicopter</span>
+               <span className="text-[9px] font-black text-primary uppercase">Drone: Active</span>
+            </div>
+          </div>
+          
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+            {[
+              { id: '1', title: 'Lô Dâu Tây A1', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDizaS0wKE40w5KOd9VzUwc2xjR86J9IVGybwrwkROFPUo4mynbfYxgqFBmIVBSKz8sC4IQDLHR0vQcOoaoedUXLteVKErSj1FiN3GIIvCCZCkD2pVnaeGxKDU4qEZv25-SXjsBz9oMGWpidP6me6U43bmP0MLVhjQusqTPcjoT4AUyf0Z0D05qvDaKkLTREEooaXJOR2Z-FHfTTQy0_1zVvCTfqU84vaHwNsIln6TVIXsIM8p4mj-WzWlK4l23eN10QEMGD8TCtIbA', label: 'AI: Đã tưới' },
+              { id: '2', title: 'Khu Drone Ba Vì', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCW4syBykgQHRuIXLBESktXH4gaZjHD5svMevKOdt7O_PsfrAHisJLP7Yt6CyhlTFKqGsulKUyPCCooNLcU-ujk_ro2ifhWj0O8WPq2KpY-gvvi3gVxo3ktVdJ4CcEQPqJWr3-8pRVBAlDxeJVPMzeGXgdqhjM_rreULDQOjeI6rkg0L0FEEMFVKtUFE6gaDffndAVTKJE_kwei7vZJxfYX8IaErgVjxIdDElJqb13yHzd8djyCPWLe3cttTK_Kg-rfmFGcxvaX9qzf', label: 'AI: Ổn định' }
+            ].map((cam) => (
+              <div 
+                key={cam.id} 
+                onClick={() => onNavigate('areas')}
+                className="relative shrink-0 w-72 aspect-video rounded-card overflow-hidden bg-slate-900 border border-white/5 shadow-2xl group active-scale cursor-pointer"
               >
-                <span className="material-symbols-outlined font-black">share</span>
-              </button>
-              <button className="bg-red-600 text-white px-4 h-10 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
-                Xử lý
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* Quick Weather */}
-        <section onClick={() => onNavigate('weather')} className="w-full rounded-[2rem] bg-blue-500 p-5 text-white shadow-xl relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all">
-          <div className="absolute top-0 right-0 -mr-4 -mt-4 opacity-20 transform group-hover:scale-110 transition-transform">
-             <span className="material-symbols-outlined !text-[80px]">cloud</span>
-          </div>
-          <div className="relative z-10 flex justify-between h-full">
-            <div className="flex flex-col justify-between">
-              <div>
-                <h3 className="text-sm font-black uppercase tracking-tight">Thời tiết Farm</h3>
-                <p className="text-[10px] opacity-70 uppercase tracking-widest font-bold">Trời nắng nhẹ</p>
-              </div>
-              <h2 className="text-4xl font-black tracking-tighter mt-4">{sensors.temp}°C</h2>
-            </div>
-            <div className="flex flex-col items-end justify-between">
-               <span className="material-symbols-outlined text-3xl text-yellow-300 material-symbols-filled">wb_sunny</span>
-               <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">
-                  Chi tiết <span className="material-symbols-outlined !text-sm">arrow_forward</span>
-               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Admin Pro Controls */}
-        <section className="grid grid-cols-2 gap-3">
-          <button onClick={() => onNavigate('attendance')} className="flex items-center gap-3 rounded-[1.75rem] bg-blue-600 p-4 shadow-lg active:scale-[0.97] transition-all group overflow-hidden relative">
-            <div className="size-11 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined font-bold">fact_check</span>
-            </div>
-            <div className="flex flex-col items-start text-left">
-              <span className="text-xs font-black text-white uppercase">Nhân sự</span>
-              <span className="text-[8px] font-bold text-white/70 uppercase">Điểm danh</span>
-            </div>
-          </button>
-          <button onClick={() => onNavigate('virtual-farm')} className="flex items-center gap-3 rounded-[1.75rem] bg-primary p-4 shadow-lg active:scale-[0.97] transition-all group overflow-hidden relative">
-            <div className="size-11 rounded-2xl bg-black/10 flex items-center justify-center text-black backdrop-blur-sm group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined font-bold">videogame_asset</span>
-            </div>
-            <div className="flex flex-col items-start text-left">
-              <span className="text-xs font-black text-black uppercase">IoT Farm</span>
-              <span className="text-[8px] font-bold text-black/60 uppercase">Trại ảo</span>
-            </div>
-          </button>
-        </section>
-
-        {/* Discovery Items */}
-        <section className="grid grid-cols-3 gap-3">
-          {[
-            { id: 'inv', title: 'Kho Vật Tư', icon: 'inventory_2', color: 'bg-blue-500/10', page: 'inventory' as Page },
-            { id: 'mkt', title: 'Chợ Nông Sản', icon: 'storefront', color: 'bg-emerald-500/10', page: 'marketplace' as Page },
-            { id: 'ai', title: 'Dữ liệu AI', icon: 'psychology', color: 'bg-purple-500/10', page: 'ai-data' as Page },
-          ].map((item) => (
-            <button key={item.id} onClick={() => onNavigate(item.page)} className="flex flex-col items-center justify-center gap-2 py-4 rounded-3xl bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 shadow-sm active:scale-95 transition-all group">
-              <div className={`size-10 rounded-xl ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                <span className="material-symbols-outlined text-xl">{item.icon}</span>
-              </div>
-              <span className="text-[8px] font-black uppercase tracking-widest text-center px-1 text-gray-500 dark:text-gray-400">{item.title}</span>
-            </button>
-          ))}
-        </section>
-
-        {/* Vital Sensors */}
-        <section>
-          <h2 className="text-base font-black text-[#111714] dark:text-white uppercase tracking-tight mb-3 pl-1">Cảm biến hiện trường</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-2 rounded-[2rem] bg-white dark:bg-surface-dark p-5 shadow-sm border border-gray-100 dark:border-gray-800 active:scale-95 transition-transform">
-              <div className="flex items-center gap-1.5 text-gray-400">
-                <span className="material-symbols-outlined text-orange-500 !text-lg">thermostat</span>
-                <span className="text-[10px] font-black uppercase tracking-widest">Nhiệt độ</span>
-              </div>
-              <p className="text-3xl font-black text-[#111714] dark:text-white tracking-tighter">{sensors.temp}°C</p>
-            </div>
-            <div className="flex flex-col gap-2 rounded-[2rem] bg-white dark:bg-surface-dark p-5 shadow-sm border border-gray-100 dark:border-gray-800 active:scale-95 transition-transform">
-              <div className="flex items-center gap-1.5 text-gray-400">
-                <span className="material-symbols-outlined text-blue-500 !text-lg">humidity_percentage</span>
-                <span className="text-[10px] font-black uppercase tracking-widest">Độ ẩm đất</span>
-              </div>
-              <p className="text-3xl font-black text-[#111714] dark:text-white tracking-tighter">{sensors.soilMoisture}%</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Scan Entry */}
-        <button onClick={() => onNavigate('scan')} className="w-full rounded-[2rem] bg-primary p-5 shadow-lg active:scale-[0.98] transition-all hover:bg-primary-dark group flex items-center gap-4">
-          <div className="size-14 rounded-2xl bg-white/30 flex items-center justify-center text-[#111714] shadow-inner">
-            <span className="material-symbols-outlined !text-3xl font-black">center_focus_weak</span>
-          </div>
-          <div className="flex flex-col items-start">
-            <span className="text-lg font-black text-[#111714] uppercase tracking-tight">Quét Sâu Bệnh AI</span>
-            <span className="text-[9px] font-black text-[#111714]/60 uppercase tracking-[0.2em]">Gemini Vision Pro v2.5</span>
-          </div>
-        </button>
-
-        {/* Zone List */}
-        <section className="mb-4">
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-base font-black text-[#111714] dark:text-white uppercase tracking-tight">Các khu vực</h2>
-            <button onClick={() => onNavigate('areas')} className="text-[9px] font-black text-primary uppercase tracking-[0.2em] hover:underline">Xem hết</button>
-          </div>
-          <div className="flex flex-col gap-3">
-            {zones.map(zone => (
-              <div key={zone.id} onClick={() => onNavigate('area-details')} className="flex items-center justify-between rounded-3xl bg-white dark:bg-surface-dark p-3 border border-gray-100 dark:border-gray-800 active:scale-[0.99] transition-all cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="size-12 shrink-0 rounded-2xl bg-cover bg-center border border-gray-100 dark:border-gray-700" style={{ backgroundImage: `url('${zone.img}')` }}></div>
-                  <div className="flex flex-col">
-                    <h3 className="text-sm font-black text-[#111714] dark:text-white uppercase tracking-tight">{zone.name}</h3>
-                    <p className="text-[10px] text-gray-400 font-medium">{zone.desc}</p>
-                  </div>
+                <img src={cam.img} className="size-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-[10s] grayscale-[20%]" alt="Cam" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                <div className="absolute top-4 left-4 flex gap-2">
+                   <span className="bg-black/60 backdrop-blur px-2 py-0.5 rounded text-[8px] font-black text-white border border-white/10 uppercase">CAM 0{cam.id}</span>
+                   <span className="bg-primary text-black px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest shadow-glow">AI VISION</span>
                 </div>
-                <div className={`flex items-center justify-center size-8 rounded-full ${zone.status === 'good' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30'}`}>
-                  <span className="material-symbols-outlined !text-lg material-symbols-filled">{zone.status === 'good' ? 'check_circle' : 'warning'}</span>
+                <div className="absolute bottom-4 left-4">
+                  <p className="text-white text-[11px] font-black uppercase tracking-widest leading-none mb-1">{cam.title}</p>
+                  <p className="text-gray-400 text-[8px] font-bold uppercase tracking-widest">WebRTC • 4K Stream</p>
                 </div>
               </div>
             ))}
           </div>
         </section>
+
+        {/* Discovery Grid - Strictly 80% Scale icons */}
+        <section className="grid grid-cols-3 gap-1.5 mt-1">
+          {[
+            { id: 'inv', label: 'Kho Vật Tư', icon: 'inventory_2', bg: 'bg-blue-500/10', color: 'text-slate-500/70', page: 'inventory' as Page },
+            { id: 'mkt', label: 'Chợ Nông Sản', icon: 'storefront', bg: 'bg-orange-500/10', color: 'text-slate-500/70', page: 'marketplace' as Page },
+            { id: 'ai', label: 'Dữ liệu AI', icon: 'analytics', bg: 'bg-purple-500/10', color: 'text-[#8B0000]/50', page: 'ai-data' as Page },
+          ].map((item) => (
+            <button key={item.id} onClick={() => onNavigate(item.page)} className="flex flex-col items-center gap-1.5 py-4 rounded-3xl bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 shadow-sm active-scale group hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+              <div className={`size-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center border border-current/10 transition-transform group-hover:scale-105`}>
+                <span className="material-symbols-outlined !text-[28px] scale-[0.8]">{item.icon}</span>
+              </div>
+              <span className="text-[11px] text-gray-600 dark:text-gray-400 font-bold uppercase tracking-tighter leading-none">{item.label}</span>
+            </button>
+          ))}
+        </section>
+
+        {/* Pro Management Tools Grid */}
+        <section className="flex flex-col gap-2 mt-1">
+           <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Quản trị Hệ thống</h2>
+           <div className="grid grid-cols-4 gap-1.5">
+             {[
+               { id: 'bc', label: 'Truy xuất', icon: 'verified_user', bg: 'bg-indigo-500/10', color: 'text-[#8B0000]/50', page: 'blockchain-scan' as Page },
+               { id: 'ap', label: 'IoT Net', icon: 'router', bg: 'bg-emerald-500/10', color: 'text-slate-500/70', page: 'ap-check' as Page },
+               { id: 'rp', label: 'Báo cáo', icon: 'summarize', bg: 'bg-rose-500/10', color: 'text-slate-500/70', page: 'reports' as Page },
+               { id: 'lb', label: 'AI Labs', icon: 'biotech', bg: 'bg-slate-500/10', color: 'text-[#8B0000]/50', page: 'ai-labs' as Page },
+             ].map((tool) => (
+               <button key={tool.id} onClick={() => onNavigate(tool.page)} className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-surface-dark rounded-2xl border border-gray-50 dark:border-gray-800/50 active-scale group shadow-sm transition-all hover:border-primary/20">
+                 <div className={`size-11 rounded-2xl ${tool.bg} ${tool.color} flex items-center justify-center transition-all group-hover:scale-105 border border-current/5`}>
+                   <span className="material-symbols-outlined !text-[22px] scale-[0.8]">{tool.icon}</span>
+                 </div>
+                 <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-tight text-center leading-tight">{tool.label}</span>
+               </button>
+             ))}
+           </div>
+        </section>
+
+        {/* Blockchain Transparency Card */}
+        <section className="mt-1">
+          <div 
+            onClick={() => onNavigate('blockchain-scan')} 
+            className="bg-slate-900 rounded-card p-5 flex items-center justify-between border border-white/5 shadow-2xl overflow-hidden relative group active-scale cursor-pointer hover:bg-slate-800 transition-all"
+          >
+            <div className="absolute -right-2 top-0 size-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all"></div>
+            <div className="flex items-center gap-4 relative z-10">
+               <div className="size-12 rounded-2xl bg-primary flex items-center justify-center shadow-glow">
+                  <span className="material-symbols-outlined !text-3xl scale-[0.8] text-[#8B0000]/50 font-black">qr_code_2</span>
+               </div>
+               <div>
+                  <h4 className="text-white text-sm font-black uppercase tracking-widest leading-none mb-1.5">Minh bạch Blockchain</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <p className="text-[9px] text-primary font-bold uppercase tracking-widest">100% Traceable • Verified</p>
+                  </div>
+               </div>
+            </div>
+            <div className="flex flex-col items-end relative z-10 opacity-60">
+               <span className="text-gray-400 text-[10px] font-mono">Block #2,841,092</span>
+               <span className="text-[8px] text-white font-black uppercase tracking-tighter mt-1">Proof-of-Origin</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Bottom Actions Row */}
+        <section className="grid grid-cols-3 gap-1.5 mt-1">
+          {[
+            { id: 'adoption', label: 'Nuôi hộ', icon: 'volunteer_activism', bg: 'bg-rose-500/10', color: 'text-slate-500/70', page: 'adoption' as Page },
+            { id: 'attendance', label: 'Chấm công', icon: 'badge', bg: 'bg-indigo-500/10', color: 'text-slate-500/70', page: 'attendance' as Page },
+            { id: 'virtual', label: 'Vườn ảo VR', icon: 'videogame_asset', bg: 'bg-emerald-500/10', color: 'text-[#8B0000]/50', page: 'virtual-farm' as Page },
+          ].map((item) => (
+            <button key={item.id} onClick={() => onNavigate(item.page)} className="flex flex-col items-center gap-1.5 py-4 rounded-3xl bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800 shadow-sm active-scale group hover:border-primary/10 transition-all">
+              <div className={`size-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center border border-current/10 transition-transform group-hover:scale-105`}>
+                <span className="material-symbols-outlined !text-[28px] scale-[0.8]">{item.icon}</span>
+              </div>
+              <span className="text-[11px] text-gray-600 dark:text-gray-400 font-bold uppercase tracking-tighter leading-none">{item.label}</span>
+            </button>
+          ))}
+        </section>
+
+        {/* Mega Scan Button */}
+        <button 
+          onClick={() => onNavigate('scan')} 
+          className="w-full rounded-card bg-primary p-5 shadow-xl active-scale transition-all hover:bg-primary-dark group flex items-center gap-4 mt-1 border-4 border-white dark:border-surface-dark ring-1 ring-primary/20"
+        >
+          <div className="size-14 rounded-2xl bg-white/30 flex items-center justify-center text-[#8B0000]/50 shadow-inner border border-white/20 transition-all group-hover:scale-105">
+            <span className="material-symbols-outlined !text-[36px] font-black scale-[0.8]">qr_code_scanner</span>
+          </div>
+          <div className="flex flex-col items-start text-left flex-1">
+            <span className="text-lg font-black text-[#111714] uppercase tracking-tight leading-none mb-1">Quét AI Vision Pro</span>
+            <span className="text-[9px] font-black text-[#111714]/60 uppercase tracking-[0.2em]">Chẩn đoán sâu bệnh & Drone Link</span>
+          </div>
+          <span className="material-symbols-outlined text-[#111714]/40 font-black">arrow_forward_ios</span>
+        </button>
+
+        <div className="py-10 text-center opacity-30 select-none">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] dark:text-white">GOFAM Command v2.5.0 • Enterprise Edition</p>
+        </div>
       </main>
 
-      {/* Floating Assistant */}
-      <div className="fixed bottom-24 right-6 z-[60]">
-        <button onClick={() => onNavigate('ai-chat')} className="size-14 rounded-full bg-primary text-black shadow-glow flex items-center justify-center active:scale-90 transition-all border-4 border-white dark:border-background-dark animate-bounce-slow">
-          <span className="material-symbols-outlined text-2xl font-black">smart_toy</span>
+      {/* Bottom Tab Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-white/90 dark:bg-surface-dark/95 backdrop-blur-2xl border-t border-gray-100 dark:border-gray-800 px-6 h-20 pb-6 flex justify-between items-center transition-all shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+        <button className="flex flex-col items-center gap-1 text-[#8B0000]/50 scale-110 active-scale">
+          <span className="material-symbols-outlined material-symbols-filled !text-[28px]">grid_view</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.15em]">Trung tâm</span>
         </button>
-      </div>
-
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 px-6 h-20 pb-6 flex justify-between items-center transition-colors">
-        <button className="flex flex-col items-center gap-1 text-primary scale-110">
-          <span className="material-symbols-outlined material-symbols-filled !text-[26px]">grid_view</span>
-          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Tổng quan</span>
+        <button onClick={() => onNavigate('tasks')} className="flex flex-col items-center gap-1 text-slate-400/60 active-scale hover:text-primary transition-all">
+          <span className="material-symbols-outlined !text-[24px] scale-[0.8]">calendar_month</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.15em]">Lịch vụ</span>
         </button>
-        <button onClick={() => onNavigate('tasks')} className="flex flex-col items-center gap-1 text-slate-400">
-          <span className="material-symbols-outlined !text-[24px]">calendar_month</span>
-          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Lịch vụ</span>
-        </button>
-        <button onClick={() => onNavigate('messages')} className="flex flex-col items-center gap-1 text-slate-400 relative">
-          <span className="material-symbols-outlined !text-[24px]">chat_bubble</span>
-          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Nhóm</span>
+        <button onClick={() => onNavigate('messages')} className="flex flex-col items-center gap-1 text-slate-400/60 relative active-scale hover:text-primary transition-all">
+          <span className="material-symbols-outlined !text-[24px] scale-[0.8]">chat_bubble</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.15em]">Nhắn tin</span>
           <span className="absolute top-0 right-0 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark"></span>
         </button>
-        <button onClick={() => onNavigate('reports')} className="flex flex-col items-center gap-1 text-slate-400">
-          <span className="material-symbols-outlined !text-[24px]">bar_chart</span>
-          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Báo cáo</span>
-        </button>
-        <button onClick={() => onNavigate('settings')} className="flex flex-col items-center gap-1 text-slate-400">
-          <span className="material-symbols-outlined !text-[24px]">person</span>
-          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Cá nhân</span>
+        <button onClick={() => onNavigate('settings')} className="flex flex-col items-center gap-1 text-slate-400/60 active-scale hover:text-primary transition-all">
+          <span className="material-symbols-outlined !text-[24px] scale-[0.8]">person</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.15em]">Cá nhân</span>
         </button>
       </nav>
 
       <style>{`
         .shadow-glow { box-shadow: 0 0 15px rgba(19, 236, 73, 0.4); }
-        @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .animate-bounce-slow { animation: bounce-slow 4s infinite ease-in-out; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .animate-marquee { animation: marquee 25s linear infinite; }
+        .animate-spin-slow { animation: spin 8s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );

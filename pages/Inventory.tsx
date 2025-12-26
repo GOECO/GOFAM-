@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Page } from '../types';
 
 interface Props { onBack: () => void; onNavigate: (page: Page) => void; }
@@ -16,7 +16,7 @@ interface InventoryItem {
   rarity?: 'Common' | 'Rare' | 'Legendary';
 }
 
-const INITIAL_INVENTORY: InventoryItem[] = [
+const INITIAL_DATA: InventoryItem[] = [
   {
     id: 'i1',
     name: 'Hạt giống Dưa lưới',
@@ -58,23 +58,64 @@ const INITIAL_INVENTORY: InventoryItem[] = [
 ];
 
 const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
+  const [items, setItems] = useState<InventoryItem[]>(INITIAL_DATA);
   const [activeCategory, setActiveCategory] = useState<'All' | 'Supplies' | 'Produce' | 'NFT'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  const filteredItems = INITIAL_INVENTORY.filter(item => {
+  const filteredItems = items.filter(item => {
     const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const handleScan = () => {
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const handleScan = async () => {
     setIsScannerOpen(true);
-    // Simulation: show scanner for a bit then "detect" something
-    setTimeout(() => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+
+      // Simulation: Detect a specific item after 3 seconds
+      setTimeout(() => {
+        const newItem: InventoryItem = {
+          id: `i${Date.now()}`,
+          name: 'Robot Tưới Gen-2',
+          category: 'Supplies',
+          qty: 1,
+          unit: 'bộ',
+          value: '22,000 Xu',
+          img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCJYAj7WgPps3kL16-aZEioGp_PmhJZFKDzkZTRlCzK4efxznmTqKQptJVMRuaGkAcUnJUUeEYcOvBhh7787i3pEZJCuyuuo1mgP3atmGsDDYh8ikYA3xxEVUV5H78wFm6_9V5keya4391NXNljHG4VzAdZD3CSA85Lq0AAscEGTiwjMKOyYPQVIyADnDbTvhb6SuMIpqdGiotu54m1h2LORGN4EH5TGe6uwuXtjzBNr-czfSf3Tu0ZZls54ESCVZcuzvhWIQh5jYbl',
+          status: 'Ready',
+          rarity: 'Rare'
+        };
+        
+        setItems(prev => [newItem, ...prev]);
+        stopCamera();
+        setIsScannerOpen(false);
+        alert("Thành công! Đã quét được thiết bị: Robot Tưới Gen-2. Sản phẩm đã được thêm vào kho.");
+      }, 3500);
+    } catch (err) {
+      console.error("Camera access denied:", err);
       setIsScannerOpen(false);
-      alert("Đã nhận dạng mã QR: Sản phẩm #GFM-1029. Thông tin đã được thêm vào hệ thống.");
-    }, 2500);
+      alert("Không thể truy cập camera. Vui lòng cấp quyền để sử dụng tính năng quét.");
+    }
+  };
+
+  const closeScanner = () => {
+    stopCamera();
+    setIsScannerOpen(false);
   };
 
   return (
@@ -98,10 +139,10 @@ const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
               <span className="material-symbols-outlined text-primary text-sm font-bold">inventory_2</span>
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Sức chứa kho</p>
             </div>
-            <p className="text-[11px] font-black dark:text-white">850 / 1000 <span className="text-gray-500 text-[9px] uppercase">Slots</span></p>
+            <p className="text-[11px] font-black dark:text-white">{filteredItems.length * 10} / 1000 <span className="text-gray-500 text-[9px] uppercase">Slots</span></p>
           </div>
           <div className="relative h-2 w-full rounded-full bg-gray-200 dark:bg-surface-dark overflow-hidden shadow-inner border border-white/5">
-            <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-primary-dark to-primary shadow-glow transition-all duration-1000" style={{ width: '85%' }}></div>
+            <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-primary-dark to-primary shadow-glow transition-all duration-1000" style={{ width: `${(filteredItems.length * 10 / 1000) * 100}%` }}></div>
           </div>
         </div>
       </header>
@@ -160,7 +201,7 @@ const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
                   </div>
                 )}
                 {item.rarity && (
-                  <div className={`absolute top-3 left-3 rounded-lg px-2 py-0.5 shadow-lg z-10 border ${item.rarity === 'Legendary' ? 'bg-purple-600 border-purple-400/50' : 'bg-blue-500 border-blue-400/50'}`}>
+                  <div className={`absolute top-3 left-3 rounded-lg px-2 py-0.5 shadow-lg z-10 border ${item.rarity === 'Legendary' ? 'bg-purple-600 border-purple-400/50' : item.rarity === 'Rare' ? 'bg-blue-600 border-blue-400/50' : 'bg-blue-500 border-blue-400/50'}`}>
                     <p className="text-[8px] font-black text-white uppercase tracking-[0.2em]">{item.rarity}</p>
                   </div>
                 )}
@@ -201,7 +242,7 @@ const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
           <div className="flex-1">
             <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1.5">Gợi ý từ AI Kho</h4>
             <p className="text-slate-800 dark:text-blue-100/70 text-xs font-bold leading-relaxed">
-              Bạn có <span className="text-primary font-black">150kg Bắp Cải Xanh</span>. Giá thị trường đang tăng 5%, bạn nên cân nhắc <span className="underline decoration-primary/30">Bán ngay</span> để tối ưu lợi nhuận.
+              Bạn có <span className="text-primary font-black">{items.find(i => i.id === 'i4')?.qty}kg Bắp Cải Xanh</span>. Giá thị trường đang tăng 5%, bạn nên cân nhắc <span className="underline decoration-primary/30">Bán ngay</span> để tối ưu lợi nhuận.
             </p>
           </div>
         </section>
@@ -211,13 +252,13 @@ const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
       {isScannerOpen && (
         <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out]">
           {/* Header Controls */}
-          <div className="absolute top-0 left-0 w-full p-6 flex items-center justify-between z-[110]">
-            <button onClick={() => setIsScannerOpen(false)} className="size-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition-transform">
+          <div className="absolute top-0 left-0 w-full p-6 flex items-center justify-between z-[110] bg-gradient-to-b from-black/80 to-transparent">
+            <button onClick={closeScanner} className="size-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition-transform">
               <span className="material-symbols-outlined">close</span>
             </button>
             <div className="flex flex-col items-center">
-              <h2 className="text-white font-black uppercase tracking-[0.2em] text-sm">Máy quét QR</h2>
-              <p className="text-[10px] text-primary font-bold uppercase mt-1">Hệ thống Blockchain</p>
+              <h2 className="text-white font-black uppercase tracking-[0.2em] text-sm">Máy quét vật tư</h2>
+              <p className="text-[10px] text-primary font-bold uppercase mt-1">Live Vision Processing</p>
             </div>
             <button className="size-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white">
               <span className="material-symbols-outlined">flash_on</span>
@@ -225,25 +266,26 @@ const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
           </div>
 
           {/* Scanner Viewport */}
-          <div className="relative w-80 h-80 border border-white/20 rounded-[3rem] overflow-hidden bg-white/5 backdrop-blur-[2px]">
+          <div className="relative w-80 h-80 border border-white/20 rounded-[3rem] overflow-hidden bg-black shadow-2xl">
+            {/* Live Video Feed */}
+            <video ref={videoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+            
             {/* Corner Markers */}
-            <div className="absolute top-0 left-0 w-14 h-14 border-t-4 border-l-4 border-primary rounded-tl-3xl shadow-glow"></div>
-            <div className="absolute top-0 right-0 w-14 h-14 border-t-4 border-r-4 border-primary rounded-tr-3xl shadow-glow"></div>
-            <div className="absolute bottom-0 left-0 w-14 h-14 border-b-4 border-l-4 border-primary rounded-bl-3xl shadow-glow"></div>
-            <div className="absolute bottom-0 right-0 w-14 h-14 border-b-4 border-r-4 border-primary rounded-br-3xl shadow-glow"></div>
+            <div className="absolute top-0 left-0 w-14 h-14 border-t-4 border-l-4 border-primary rounded-tl-3xl shadow-glow z-10"></div>
+            <div className="absolute top-0 right-0 w-14 h-14 border-t-4 border-r-4 border-primary rounded-tr-3xl shadow-glow z-10"></div>
+            <div className="absolute bottom-0 left-0 w-14 h-14 border-b-4 border-l-4 border-primary rounded-bl-3xl shadow-glow z-10"></div>
+            <div className="absolute bottom-0 right-0 w-14 h-14 border-b-4 border-r-4 border-primary rounded-br-3xl shadow-glow z-10"></div>
             
             {/* Scanning Line Animation */}
             <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_20px_#13ec49] scanner-line z-20"></div>
 
-            {/* Fake Camera Feed Background */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-20">
-              <span className="material-symbols-outlined text-8xl text-white">qr_code_2</span>
-            </div>
+            {/* Target Area Overlay */}
+            <div className="absolute inset-0 bg-black/40 border-[40px] border-black/40 pointer-events-none"></div>
           </div>
           
           <div className="mt-12 px-8 text-center space-y-4">
-            <p className="text-white/80 text-xs font-black uppercase tracking-[0.3em] animate-pulse">Đang tìm mã QR vật tư...</p>
-            <p className="text-[10px] text-gray-500 font-medium italic max-w-[240px]">Căn chỉnh mã nằm gọn trong khung hình để nhận diện tự động</p>
+            <p className="text-white/80 text-xs font-black uppercase tracking-[0.3em] animate-pulse">Đang định danh sản phẩm...</p>
+            <p className="text-[10px] text-gray-500 font-medium italic max-w-[240px] leading-relaxed">Hướng camera vào mã QR hoặc nhãn sản phẩm để hệ thống tự động nhận diện và cập nhật kho</p>
           </div>
         </div>
       )}
@@ -251,7 +293,7 @@ const Inventory: React.FC<Props> = ({ onBack, onNavigate }) => {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-xl border-t border-slate-100 dark:border-gray-800 px-6 h-20 pb-6 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)] transition-colors">
         <button onClick={() => onNavigate('dashboard')} className="flex flex-col items-center gap-1.5 text-slate-400 group">
-          <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">grid_view</span>
+          <span className="material-symbols-outlined !text-2xl group-hover:scale-110 transition-transform">home</span>
           <span className="text-[9px] font-black uppercase tracking-widest">Trại</span>
         </button>
         <button className="flex flex-col items-center gap-1.5 text-primary scale-110">
