@@ -19,6 +19,7 @@ import NearbySuppliers from './pages/NearbySuppliers';
 import FarmSettings from './pages/FarmSettings';
 import AreaDetails from './pages/AreaDetails';
 import Reports from './pages/Reports';
+import Vision from './pages/Vision';
 import AddTask from './pages/AddTask';
 import Adoption from './pages/Adoption';
 import VirtualGarden from './pages/VirtualGarden';
@@ -86,6 +87,7 @@ const App: React.FC = () => {
       case 'add-task': return <AddTask onBack={() => navigate('tasks')} />;
       case 'area-details': return <AreaDetails onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'reports': return <Reports onBack={() => navigate('dashboard')} />;
+      case 'vision': return <Vision onBack={() => navigate('dashboard')} />;
       case 'weather': return <Weather onBack={() => navigate('dashboard')} />;
       case 'tasks': return <Tasks onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'inventory': return <Inventory onBack={() => navigate('dashboard')} onNavigate={navigate} />;
