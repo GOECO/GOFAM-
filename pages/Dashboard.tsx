@@ -54,6 +54,16 @@ const Dashboard: React.FC<Props> = ({ onNavigate }) => {
       </header>
 
       <main className="flex flex-col gap-1.5 px-4 pt-3">
+        {/* Vision integration, preserves the existing GOFAM dashboard */}
+        <button type="button" onClick={() => onNavigate('vision')}
+          className="w-full flex items-center gap-3 rounded-2xl bg-emerald-800 p-4 text-white shadow-md text-left hover:bg-emerald-700 active-scale">
+          <span className="material-symbols-outlined !text-3xl">center_focus_strong</span>
+          <span className="flex-1">
+            <strong className="block text-base">☕ GOFAM AI Vision</strong>
+            <span className="block text-xs opacity-80 mt-1">Máy đếm cà phê · Xem dữ liệu đồng bộ từ dây chuyền</span>
+          </span>
+          <span className="text-lg">→</span>
+        </button>
         {/* Core Metrics with Smart Links */}
         <section className="grid grid-cols-2 gap-1.5">
           <div 
