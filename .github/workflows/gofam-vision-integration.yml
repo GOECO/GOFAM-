@@ -1,0 +1,28 @@
+name: GOFAM Vision host React build
+on:
+  push:
+    paths:
+      - 'App.tsx'
+      - 'types.ts'
+      - 'pages/Vision.tsx'
+      - 'services/visionClient.ts'
+      - 'pages/Dashboard.tsx'
+      - '.github/workflows/gofam-vision-integration.yml'
+  pull_request:
+    paths:
+      - 'App.tsx'
+      - 'types.ts'
+      - 'pages/Vision.tsx'
+      - 'services/visionClient.ts'
+      - 'pages/Dashboard.tsx'
+      - '.github/workflows/gofam-vision-integration.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
